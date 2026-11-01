@@ -1,6 +1,6 @@
 // نسخة Windows: بتفتح برنامج محفظتي برو المنشور على الإنترنت في نافذة مستقلة.
 // غيّر APP_URL لرابط موقعك بعد النشر (مثال: https://mohafzaty.netlify.app/app/)
-const APP_URL = 'https://96524af6.mohafzaty-pro.pages.dev/app/';
+const APP_URL = 'https://mohafzaty-pro.pages.dev/app/';
 const { app, BrowserWindow, Menu, shell, dialog } = require('electron');
 function createWindow() {
   const win = new BrowserWindow({ width: 1200, height: 820, minWidth: 380, minHeight: 600, autoHideMenuBar: true, title: 'محفظتي برو', webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } });

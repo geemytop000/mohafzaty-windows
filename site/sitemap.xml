@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://mohafzatypro.com/</loc></url>
-  <url><loc>https://mohafzatypro.com/download.html</loc></url>
-  <url><loc>https://mohafzatypro.com/register.html</loc></url>
-  <url><loc>https://mohafzatypro.com/login.html</loc></url>
-  <url><loc>https://mohafzatypro.com/privacy.html</loc></url>
-  <url><loc>https://mohafzatypro.com/terms.html</loc></url>
+  <url><loc>https://mohafzatypro.com/download</loc></url>
+  <url><loc>https://mohafzatypro.com/privacy</loc></url>
+  <url><loc>https://mohafzatypro.com/terms</loc></url>
+  <url><loc>https://mohafzatypro.com/articles/</loc></url>
+  <url><loc>https://mohafzatypro.com/articles/daily-wallet-shop-accounting</loc></url>
+  <url><loc>https://mohafzatypro.com/articles/withdrawal-deposit-commission</loc></url>
+  <url><loc>https://mohafzatypro.com/articles/customer-credit-debit</loc></url>
+  <url><loc>https://mohafzatypro.com/articles/daily-closing-drawer-reconciliation</loc></url>
 </urlset>

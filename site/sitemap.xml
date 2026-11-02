@@ -1,9 +1,22 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://96524af6.mohafzaty-pro.pages.dev/</loc></url>
-  <url><loc>https://96524af6.mohafzaty-pro.pages.dev/download.html</loc></url>
-  <url><loc>https://96524af6.mohafzaty-pro.pages.dev/register.html</loc></url>
-  <url><loc>https://96524af6.mohafzaty-pro.pages.dev/login.html</loc></url>
-  <url><loc>https://96524af6.mohafzaty-pro.pages.dev/privacy.html</loc></url>
-  <url><loc>https://96524af6.mohafzaty-pro.pages.dev/terms.html</loc></url>
+  <url>
+    <loc>https://mohafzatypro.com/</loc>
+  </url>
+  <url>
+    <loc>https://mohafzatypro.com/download.html</loc>
+  </url>
+  <url>
+    <loc>https://mohafzatypro.com/register.html</loc>
+  </url>
+  <url>
+    <loc>https://mohafzatypro.com/login.html</loc>
+  </url>
+  <url>
+    <loc>https://mohafzatypro.com/privacy.html</loc>
+  </url>
+  <url>
+    <loc>https://mohafzatypro.com/terms.html</loc>
+  </url>
 </urlset>

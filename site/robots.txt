@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
-Disallow: /app/
-Sitemap: https://96524af6.mohafzaty-pro.pages.dev/sitemap.xml
+Allow: /app/
+
+Sitemap: https://mohafzatypro.com/sitemap.xml

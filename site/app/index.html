@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex">
 <meta name="theme-color" content="#2f4a39">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1520,7 +1521,7 @@ function walletsOverviewHtml() {
   return '<div class="card" style="margin-top:22px;border-top:3px solid var(--brass)">' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">' +
     '<div><h3 style="margin:0;font-size:16px">📱 أرصدة وحدود محافظ المحمول بالتفصيل</h3>' +
-    '<p class="hint" style="margin:2px 0 0">متابعة فورية لكل خط: الرصيد الفعلي، والمتبقي من الحد اليومي والشهري مع المنع التلقائي عند التجاوز.</p></div>' +
+    '<p class="hint" style="margin:2px 0 0">تُحسب الحدود من القيود المسجلة؛ يتجدد العداد اليومي كل يوم والشهري في اليوم الأول من كل شهر وفق تاريخ الجهاز. قد يمنع البرنامج حفظ قيد يتجاوز الحد المدخل، لكنه لا يتصل بمقدم الخدمة ولا يقرأ عداده.</p></div>' +
     '<button type="button" class="mini ok noprint" data-act="addWalletModal">➕ إضافة رقم محفظة</button></div>' +
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px;margin-top:12px">' +
     ws.map(w => {
@@ -1568,7 +1569,7 @@ function walletsOverviewHtml() {
       const isNearLimit = (st.pctDaily >= 85) || (st.pctMonthly >= 85);
       const limitWarning = isNearLimit
         ? '<div style="background:#FFF3CD;color:#856404;border:1px solid #FFEEBA;padding:7px 10px;border-radius:10px;font-size:12px;font-weight:700;margin:6px 0 10px;display:flex;align-items:center;gap:6px">' +
-          '<span>⚠️ تنبيه: استهلاك الخط وصل إلى <b class="num">' + Math.max(st.pctDaily, st.pctMonthly) + '%</b> من الحد المسموح به!</span></div>'
+          '<span>⚠️ تنبيه: الاستهلاك المسجل وصل إلى <b class="num">' + Math.max(st.pctDaily, st.pctMonthly) + '%</b> من الحد الذي أدخلته.</span></div>'
         : '';
 
       return '<div class="box" style="border:1.5px solid ' + (isActive ? 'var(--credit)' : 'var(--line)') + ';background:' + (isActive ? '#F7FAF7' : '#fff') + ';border-radius:14px;padding:14px">' +
@@ -2746,6 +2747,15 @@ function viewSettings() {
 
 securitySettingsHtml() +
 
+    '<div class="card" aria-labelledby="supportContactTitle" style="border-radius:12px;background:var(--paper);border-color:var(--line-soft)">' +
+    '<h3 id="supportContactTitle">💬 تواصل معنا</h3>' +
+    '<p class="hint">للدعم أو الاستفسارات، اختر وسيلة التواصل المناسبة.</p>' +
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+    '<a href="https://wa.me/20155560865" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 14px;border-radius:999px;background:var(--credit);color:#fff;text-decoration:none;font-weight:700">💬 WhatsApp · 01555560865</a>' +
+    '<a href="mailto:mohafzatypro@gmail.com" style="display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--paper-raised);color:var(--ink);text-decoration:none">✉️ mohafzatypro@gmail.com</a>' +
+    '<a href="https://www.facebook.com/share/14vAuBAnGHx/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--paper-raised);color:var(--ink);text-decoration:none">📘 Facebook</a>' +
+    '</div></div>' +
+
     '<div class="card"><h3>النسخ الاحتياطي والتصدير</h3>' +
     '<p class="hint">آخر نسخة احتياطية: ' + (s.lastBackup ? new Date(s.lastBackup).toLocaleString('ar-EG') : 'لسه ما اتعملتش') + '</p>' +
     '<div class="form-actions" style="margin-top:0"><button class="btn-save" data-act="backup">⬇️ نسخة احتياطية (JSON)</button>' +
@@ -3888,7 +3898,7 @@ function processBotQuery(rawQuery) {
 
   // الاشتراكات غير متاحة حاليًا
   if (botHasAny(n, ['اشترك', 'اشتراك', 'باق', 'عروض', 'اسعار', 'سعر', 'كام الاشتراك', 'رقم التواصل', 'ارقام التواصل', 'واتساب المبيعات', 'ازاي اجدد', 'طريقه الاشتراك', 'عايز اشترك'])) {
-    return 'استخدام محفظتي برو متاح حاليًا بدون باقات اشتراك أو مدفوعات. سجّل الدخول بحسابك لاستخدام المزامنة السحابية.';
+    return 'محفظتي برو مجاني للتسجيل والاستخدام، ويمكنك استخدام الوظائف المتاحة دون اشتراك أو رسوم. سجّل الدخول لإعداد المزامنة بين أجهزتك.';
   }
 
   // 1. تحية واستفسار عن هوية البوت
@@ -3912,7 +3922,7 @@ function processBotQuery(rawQuery) {
       '1. اضغط على تبويب **إدارة الخطوط** في الشريط العلوي.\n' +
       '2. اضغط على زر **➕ إضافة رقم محفظة**.\n' +
       '3. اكتب رقم الموبايل (مثال: 01012345678)، واسم المحفظة، والرصيد الافتتاحي، والحد اليومي والشهري.\n' +
-      '4. اضغط **إضافة** وسيقوم البرنامج بمتابعة استهلاكه ومنع أي عملية تتجاوز الحد تلقائياً!\n' +
+      '4. اضغط **إضافة** وسيعرض البرنامج الاستخدام المسجل والمتبقي، وينبهك عند الاقتراب من الحدود التي أدخلتها، وقد يمنع حفظ قيد يتجاوزها. هذا لا ينفذ معاملة لدى مقدم الخدمة ولا يقرأ عداده أو يغير حدوده.\n' +
       '*(ملاحظة: إذا كان المستخدم كاشيراً، يطلب النظام كلمة سر المدير أو الخطوط لحماية الأرقام)*.';
   }
 
@@ -3958,7 +3968,7 @@ function processBotQuery(rawQuery) {
 
   // الاشتراكات متوقفة حاليًا
   if (botHasAny(n, ['اشتراك', 'تفعيل', 'ترخيص', 'تجديد', 'كود الجهاز', 'رخصه'])) {
-    return 'محفظتي برو متاحة حاليًا بدون باقات اشتراك أو أكواد تفعيل. سجّل الدخول بحسابك لاستخدام البرنامج والمزامنة السحابية.';
+    return 'محفظتي برو مجاني للتسجيل والاستخدام، ويمكنك استخدام الوظائف المتاحة دون اشتراك أو رسوم. سجّل الدخول لفتح البرنامج وإعداد المزامنة.';
   }
 
   // الإلغاء والقيد العكسي

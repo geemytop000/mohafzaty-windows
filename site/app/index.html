@@ -2545,7 +2545,7 @@ function tabsHtml() {
     (state.mobileMenuOpen ? 'true' : 'false') +
     '"><span class="tab-icon">' + navIcon('more') +
     '</span><span class="tab-label">المزيد</span></button>';
-  return '<nav class="tabs noprint" aria-label="أقسام التطبيق">' + buttons + moreButton + '</nav><div class="tabs-spacer" aria-hidden="true"></div>' + extraMenu;
+  return '<nav class="tabs noprint" aria-label="أقسام التطبيق">' + buttons + moreButton + extraMenu + '</nav><div class="tabs-spacer" aria-hidden="true"></div>';
 }
 
 function limitBar(label, used, limit) {
@@ -3110,9 +3110,7 @@ function render() {
   if (state.loading) { app.innerHTML = '<div class="boot">جارِ فتح الدفتر…</div>'; return; }
   if (state.locked) { app.innerHTML = lockHtml(); const p = $('lockPw'); if (p) p.focus(); return; }
   const views = { home: viewHome, wallets: viewWallets, ops: viewOps, cust: viewCust, rep: viewReports, stats: viewStats, set: viewSettings, support: viewContact };
-  const navHtml = tabsHtml();
-  const navParts = navHtml.split('</nav>');
-  app.innerHTML = '<div class="wrap">' + headerHtml() + bannersHtml() + navParts[0] + '</nav>' + navParts[1] + (views[state.tab] || viewHome)() + '</div>' + detailModalHtml();
+  app.innerHTML = '<div class="wrap">' + headerHtml() + bannersHtml() + tabsHtml() + (views[state.tab] || viewHome)() + '</div>' + detailModalHtml();
   updatePreviews();
 }
 

@@ -427,44 +427,30 @@ body.dark-mode .sec-row { background: #121212!important; border-color: #333!impo
 }
 
 
-/* شبكة تنقل علوية للموبايل: كل الأقسام ظاهرة بدون سحب أفقي */
+/* تنقل الموبايل أعلى الصفحة مع زر المزيد */
 .tab-icon{display:none}
 .tab-label{display:inline}
+.tab-mobile-more{display:none}
+.mobile-tabs-more{display:none}
 @media (max-width:600px){
-  #app .tabs{
-    display:grid!important;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:7px;
-    padding:7px;
-    margin:12px 0 16px;
-    overflow:visible;
-    background:#E3DCC7;
-    border:1px solid #D9D2BE!important;
-    border-radius:16px;
-  }
-  #app .tab{
-    display:flex;
-    min-width:0;
-    min-height:58px;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:4px;
-    padding:7px 3px!important;
-    border:1px solid transparent!important;
-    border-radius:11px!important;
-    background:rgba(255,255,255,.62);
-    color:#596153;
-    font-size:11.5px!important;
-    line-height:1.25;
-    white-space:normal;
-  }
+  #app .tabs{position:relative;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:7px;margin:12px 0 16px;overflow:visible;background:#E3DCC7;border:1px solid #D9D2BE!important;border-radius:16px;z-index:20}
+  #app .tab{display:flex;min-width:0;min-height:58px;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:7px 3px!important;border:1px solid transparent!important;border-radius:11px!important;background:rgba(255,255,255,.62);color:#596153;font-size:11.5px!important;line-height:1.25;white-space:normal}
   #app .tab-icon{display:block;font-size:18px;line-height:1.1}
   #app .tab-label{display:block;max-width:100%;overflow-wrap:anywhere}
-  #app .tab.on{background:#2f4a39!important;color:#fff!important;border-color:#2f4a39!important;box-shadow:0 3px 10px rgba(47,74,57,.22)}
+  #app .tab-mobile-extra{display:none!important}
+  #app .tab-mobile-more{display:flex!important}
+  #app .tab-mobile-more.on{background:#2f4a39!important;color:#fff!important;border-color:#2f4a39!important;box-shadow:0 3px 10px rgba(47,74,57,.22)}
+  #app .mobile-tabs-more{position:absolute;top:calc(100% + 8px);right:0;left:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:9px;background:rgba(255,255,255,.98);border:1px solid #D9D2BE;border-radius:15px;box-shadow:0 12px 30px rgba(23,38,29,.18);z-index:30}
+  #app .mobile-tabs-more[hidden]{display:none!important}
+  #app .mobile-tabs-more .mobile-more-item{display:flex;min-width:0;min-height:58px;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:7px 3px;border:1px solid #E3DCC7;border-radius:11px;background:#F6F1E4;color:#202B22;font-family:inherit;font-size:11.5px;font-weight:700;line-height:1.25;text-align:center;cursor:pointer}
+  #app .mobile-tabs-more .mobile-more-item.on{background:#EAF3EC;color:#2F6F4E;border-color:#2F6F4E}
+  #app .mobile-tabs-more .mobile-more-icon{font-size:18px;line-height:1.1}
   body.dark-mode #app .tabs{background:#1E1E1E!important;border-color:#333!important}
   body.dark-mode #app .tab{background:#2A2A2A;color:#A0A0A0}
-  body.dark-mode #app .tab.on{background:#4CAF50!important;color:#121212!important;border-color:#4CAF50!important}
+  body.dark-mode #app .tab.on,body.dark-mode #app .tab-mobile-more.on{background:#4CAF50!important;color:#121212!important;border-color:#4CAF50!important}
+  body.dark-mode #app .mobile-tabs-more{background:#1E1E1E;border-color:#444}
+  body.dark-mode #app .mobile-tabs-more .mobile-more-item{background:#2A2A2A;color:#E0E0E0;border-color:#444}
+  body.dark-mode #app .mobile-tabs-more .mobile-more-item.on{background:#1A3320;color:#4CAF50;border-color:#4CAF50}
 }
 </style>
 
@@ -605,7 +591,7 @@ const state = {
   closings: [], audit: [],
   license: { deviceId: '', first: 0, lastSeen: 0, key: '' },
   authUntil: 0, failCount: 0, lockoutUntil: 0,
-  panel: null, err: '', detailId: null,
+  panel: null, err: '', detailId: null, mobileMenuOpen: false,
   filters: { type: '', search: '', from: '', to: '', showVoided: false, limit: 50, walletId: '' },
   repMonth: '',
   folder: { status: supportsFS ? 'checking' : 'unsupported', name: '' },
@@ -2522,19 +2508,35 @@ function bannersHtml() {
 function tabsHtml() {
   const isCashier = getCurrentUser().role === 'cashier';
   const tabs = [
-    ['home', '🏠', 'الرئيسية'],
-    ['ops', '↔️', 'العمليات'],
-    ['cust', '👥', 'العملاء'],
-    ['rep', '📊', 'التقارير'],
-    ['stats', '📈', 'الإحصائيات'],
-    ['wallets', '📱', 'إدارة الخطوط' + (isCashier ? '' : ' 🔒')]
+    ['home', '🏠', 'الرئيسية', false],
+    ['ops', '↔️', 'العمليات', false],
+    ['cust', '👥', 'العملاء', false],
+    ['rep', '📊', 'التقارير', false],
+    ['stats', '📈', 'الإحصائيات', true],
+    ['wallets', '📱', 'إدارة الخطوط', true]
   ];
-  if (!isCashier) tabs.push(['set', '⚙️', 'الإعدادات 🔒']);
-  return '<nav class="tabs noprint" aria-label="أقسام التطبيق">' + tabs.map(t =>
-    '<button type="button" class="tab' + (state.tab === t[0] ? ' on' : '') + '" data-act="tab" data-tab="' + t[0] + '"' +
-    (state.tab === t[0] ? ' aria-current="page"' : '') + '><span class="tab-icon" aria-hidden="true">' + t[1] +
-    '</span><span class="tab-label">' + t[2] + '</span></button>'
-  ).join('') + '</nav>';
+  if (!isCashier) tabs.push(['set', '⚙️', 'الإعدادات 🔒', true]);
+  const buttons = tabs.map(t => {
+    const active = state.tab === t[0];
+    return '<button type="button" class="tab' + (active ? ' on' : '') + (t[3] ? ' tab-mobile-extra' : '') +
+      '" data-act="tab" data-tab="' + t[0] + '"' + (active ? ' aria-current="page"' : '') +
+      '><span class="tab-icon" aria-hidden="true">' + t[1] +
+      '</span><span class="tab-label">' + t[2] + '</span></button>';
+  }).join('');
+  const extraMenu = state.mobileMenuOpen
+    ? '<div class="mobile-tabs-more" role="group" aria-label="باقي أقسام التطبيق">' + tabs.filter(t => t[3]).map(t => {
+        const active = state.tab === t[0];
+        return '<button type="button" class="mobile-more-item' + (active ? ' on' : '') +
+          '" data-act="tab" data-tab="' + t[0] + '"' + (active ? ' aria-current="page"' : '') +
+          '><span class="mobile-more-icon" aria-hidden="true">' + t[1] +
+          '</span><span>' + t[2] + '</span></button>';
+      }).join('') + '</div>'
+    : '<div class="mobile-tabs-more" hidden></div>';
+  const moreActive = tabs.some(t => t[3] && state.tab === t[0]);
+  const moreButton = '<button type="button" class="tab tab-mobile-more' + ((moreActive || state.mobileMenuOpen) ? ' on' : '') +
+    '" data-act="mobileMore" aria-haspopup="true" aria-expanded="' + (state.mobileMenuOpen ? 'true' : 'false') +
+    '"><span class="tab-icon" aria-hidden="true">☰</span><span class="tab-label">المزيد</span></button>';
+  return '<nav class="tabs noprint" aria-label="أقسام التطبيق">' + buttons + moreButton + extraMenu + '</nav>';
 }
 
 function limitBar(label, used, limit) {
@@ -3161,7 +3163,7 @@ async function goTab(t) {
   }
   if (t === 'set' && !(await requireAuth('الدخول للإعدادات', 'settings'))) return;
   if (t === 'wallets' && !isCashier && !(await requireAuth('الدخول لإدارة الخطوط', 'wallets'))) return;
-  state.tab = t; state.panel = null; state.err = '';
+  state.tab = t; state.panel = null; state.err = ''; state.mobileMenuOpen = false;
   if (t === 'set') initSetDrafts();
   render(); if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
 }
@@ -3172,6 +3174,7 @@ async function handleClick(e) {
   if (act === 'closeOverlay' && e.target !== el) return;
   switch (act) {
     case 'tab': return goTab(el.dataset.tab);
+    case 'mobileMore': state.mobileMenuOpen = !state.mobileMenuOpen; return render();
     case 'panel': state.panel = state.panel === v ? null : v; state.err = ''; return render();
     case 'saveMain': el.disabled = true; await addMainTxn(); return;
     case 'saveLedger': el.disabled = true; await addLedgerTxn(); return;

@@ -347,6 +347,85 @@ body.dark-mode .mdl-row { background: #121212!important; border-color: #333!impo
 body.dark-mode .mdl-row.on { background: #1A3320!important; border-color: #4CAF50!important; }
 body.dark-mode .sec-row { background: #121212!important; border-color: #333!important; }
 
+/* إدارة الخطوط: تحويل صفوف الجدول إلى بطاقات مريحة على شاشات الهاتف */
+@media (max-width: 600px) {
+  #app .wallets-management-card {
+    padding: 12px;
+    overflow: hidden;
+  }
+  #app .wallets-management-card .wallets-table,
+  #app .wallets-management-card .wallets-table tbody {
+    display: block;
+    width: 100%;
+  }
+  #app .wallets-management-card .wallets-table thead {
+    display: none;
+  }
+  #app .wallets-management-card .wallets-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    width: 100%;
+    margin: 10px 0 0;
+    padding: 10px;
+    border: 1px solid #E3DCC7;
+    border-radius: 14px;
+    background: #fff;
+  }
+  #app .wallets-management-card .wallets-table tbody td {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    min-width: 0;
+    padding: 8px 9px !important;
+    border: 1px solid #ECE6D8 !important;
+    border-radius: 10px;
+    background: #FBFAF6;
+    text-align: right;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.55;
+    font-size: 12.5px;
+  }
+  #app .wallets-management-card .wallets-table tbody td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    color: #596153;
+    font-family: 'Tajawal','Segoe UI',Tahoma,sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  #app .wallets-management-card .wallets-table tbody td:nth-child(3),
+  #app .wallets-management-card .wallets-table tbody td:nth-child(6) {
+    grid-column: 1 / -1;
+  }
+  #app .wallets-management-card .wallets-table tbody td:nth-child(1) b {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-size: 15px;
+  }
+  #app .wallets-management-card .wallets-table tbody td.wallet-actions {
+    padding: 9px !important;
+  }
+  #app .wallets-management-card .wallet-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+  #app .wallets-management-card .wallet-action-buttons .mini {
+    flex: 1 1 88px;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
+
 </style>
 
 <script>
@@ -2525,24 +2604,24 @@ function viewWallets() {
     totDepMonth += st.depositedMonth;
   });
 
-  const tableCard = '<div class="card"><h3>📱 جدول أرقام المحافظ والتحكم بالخطوط</h3>' +
+  const tableCard = '<div class="card wallets-management-card"><h3>📱 جدول أرقام المحافظ والتحكم بالخطوط</h3>' +
     '<p class="hint">إدارة كاملة لخطوط المحافظ (فودافون، أورنج، إي آند، إنستاباي، وي): تحديد الحد اليومي والشهري لكل خط والتفعيل والتعديل والحذف مع المنع التلقائي عند التجاوز.</p>' +
-    '<table class="tbl" style="margin-top:10px"><tr><th>الرقم</th><th>الاسم</th><th>الرصيد الفعلي</th><th>الحد اليومي</th><th>الحد الشهري</th><th>التحكم</th></tr>' +
+    '<table class="tbl wallets-table" style="margin-top:10px"><thead><tr><th>الرقم</th><th>الاسم</th><th>الرصيد الفعلي</th><th>الحد اليومي</th><th>الحد الشهري</th><th>التحكم</th></tr></thead><tbody>' +
     ws.map(function(w) {
       var st = getWalletStats(w.id);
       var isAct = w.id === getActiveWalletId();
-      return '<tr><td><b>' + esc(w.phone) + '</b>' + (isAct ? ' <span class="badge-plan pro" style="font-size:10px">النشط ✓</span>' : '') + '</td>' +
-        '<td>' + esc(w.label) + '</td>' +
-        '<td class="num">' + fmt(st.balance) + ' ' + CUR + '</td>' +
-        '<td class="num">' + (w.dailyLimit > 0 ? fmt(w.dailyLimit) + ' (باقي ' + fmt(st.remDaily) + ')' : 'بدون حد') + '</td>' +
-        '<td class="num">' + (w.monthlyLimit > 0 ? fmt(w.monthlyLimit) + ' (باقي ' + fmt(st.remMonthly) + ')' : 'بدون حد') + '</td>' +
-        '<td style="white-space:nowrap">' +
-        (!isAct ? '<button type="button" class="mini ok" style="padding:4px 8px;font-size:11px" data-act="setActiveWallet" data-id="' + esc(w.id) + '">تفعيل</button> ' : '') +
-        '<button type="button" class="mini" style="padding:4px 8px;font-size:11px" data-act="editWalletModal" data-id="' + esc(w.id) + '">تعديل</button> ' +
-        '<button type="button" class="mini del" style="padding:4px 8px;font-size:11px" data-act="delWallet" data-id="' + esc(w.id) + '">حذف</button>' +
-        '</td></tr>';
+      return '<tr><td data-label="رقم المحفظة"><b>' + esc(w.phone) + '</b>' + (isAct ? ' <span class="badge-plan pro" style="font-size:10px">النشط ✓</span>' : '') + '</td>' +
+        '<td data-label="اسم الخط">' + esc(w.label) + '</td>' +
+        '<td class="num" data-label="الرصيد الفعلي">' + fmt(st.balance) + ' ' + CUR + '</td>' +
+        '<td class="num" data-label="الحد اليومي">' + (w.dailyLimit > 0 ? fmt(w.dailyLimit) + ' (باقي ' + fmt(st.remDaily) + ')' : 'بدون حد') + '</td>' +
+        '<td class="num" data-label="الحد الشهري">' + (w.monthlyLimit > 0 ? fmt(w.monthlyLimit) + ' (باقي ' + fmt(st.remMonthly) + ')' : 'بدون حد') + '</td>' +
+        '<td class="wallet-actions" data-label="التحكم"><div class="wallet-action-buttons">' +
+        (!isAct ? '<button type="button" class="mini ok" data-act="setActiveWallet" data-id="' + esc(w.id) + '">تفعيل</button>' : '') +
+        '<button type="button" class="mini" data-act="editWalletModal" data-id="' + esc(w.id) + '">تعديل</button>' +
+        '<button type="button" class="mini del" data-act="delWallet" data-id="' + esc(w.id) + '">حذف</button>' +
+        '</div></td></tr>';
     }).join('') +
-    '</table></div>';
+    '</tbody></table></div>';
 
   return '<div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#F6F1E4,#EDE7D8);border:1.5px solid var(--border)">' +
     '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">' +

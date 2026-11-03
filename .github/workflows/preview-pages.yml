@@ -3,8 +3,9 @@ name: Preview Mohafzaty Pro on Cloudflare Pages
 on:
   push:
     branches:
-      - wallet-guides-and-article-cta
+      - wallet-guides-shop
       - add-ga4-website-analytics
+      - track-registration-download-clicks
     paths:
       - 'site/**'
       - '.github/workflows/preview-pages.yml'

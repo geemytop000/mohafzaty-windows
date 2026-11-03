@@ -3312,7 +3312,7 @@ async function tryUnlock() {
       if (alreadyScrolled !== scrolled) {
         document.body.classList.toggle('nav-scrolled', scrolled);
       }
-      if (scrolled && nav && spacer) spacer.style.height = Math.ceil(nav.offsetHeight + navFlowSpace - nav.offsetHeight) + 'px';
+      if (scrolled && nav && spacer) spacer.style.height = Math.ceil(navFlowSpace) + 'px';
       const moreButton = document.querySelector('#app .tab-mobile-more');
       if (moreButton) {
         const moreActive = ['wallets', 'set', 'support'].includes(state.tab) ||

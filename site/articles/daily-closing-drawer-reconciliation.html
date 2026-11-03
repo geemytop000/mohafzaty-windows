@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl"><head>
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HTXW8HD2WT"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-HTXW8HD2WT');
+  // Collect production-site visits only; keep Cloudflare preview traffic out of reports.
+  if (["mohafzatypro.com", "www.mohafzatypro.com"].includes(window.location.hostname)) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){window.dataLayer.push(arguments);};
+    window.gtag('js', new Date());
+    window.gtag('config', 'G-HTXW8HD2WT');
+    var googleAnalyticsScript = document.createElement('script');
+    googleAnalyticsScript.async = true;
+    googleAnalyticsScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-HTXW8HD2WT';
+    document.head.appendChild(googleAnalyticsScript);
+  }
 </script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>الإقفال اليومي ومطابقة درج المحل والمحافظ | محفظتي برو</title>

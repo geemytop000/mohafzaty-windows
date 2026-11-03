@@ -8,6 +8,25 @@
     window.gtag = function(){window.dataLayer.push(arguments);};
     window.gtag('js', new Date());
     window.gtag('config', 'G-HTXW8HD2WT');
+    document.addEventListener('click', function(event) {
+      var clickedElement = event.target;
+      if (clickedElement && clickedElement.nodeType !== 1) clickedElement = clickedElement.parentElement;
+      var clickedLink = clickedElement && clickedElement.closest ? clickedElement.closest('a[href]') : null;
+      if (!clickedLink) return;
+      var destinationUrl;
+      try { destinationUrl = new URL(clickedLink.href, window.location.href); } catch (error) { return; }
+      if (destinationUrl.origin !== window.location.origin) return;
+      var eventName = null;
+      if (destinationUrl.pathname === '/register.html' || destinationUrl.pathname === '/register/') eventName = 'click_start_free';
+      else if (destinationUrl.pathname === '/download.html' || destinationUrl.pathname === '/download' || destinationUrl.pathname === '/download/') eventName = 'click_download';
+      if (!eventName) return;
+      window.gtag('event', eventName, {
+        page_path: window.location.pathname,
+        link_text: (clickedLink.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 80),
+        destination_path: destinationUrl.pathname
+      });
+    });
+
     var googleAnalyticsScript = document.createElement('script');
     googleAnalyticsScript.async = true;
     googleAnalyticsScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-HTXW8HD2WT';

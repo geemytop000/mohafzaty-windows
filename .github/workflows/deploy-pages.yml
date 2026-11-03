@@ -30,6 +30,17 @@ jobs:
           print(f'Validated transparent app icon: {width}x{height}, {len(data)} bytes')
           PY
 
+      - name: Prepare root favicon for browsers and Google
+        run: |
+          base64 --decode .github/assets/root-favicon.ico.b64 > site/favicon.ico
+          python - <<'PY'
+          from pathlib import Path
+          data = Path('site/favicon.ico').read_bytes()
+          assert data[:4] == bytes([0, 0, 1, 0]), 'Invalid ICO signature'
+          assert int.from_bytes(data[4:6], 'little') >= 1, 'ICO contains no images'
+          print(f'Validated root favicon: {len(data)} bytes')
+          PY
+
       - name: Deploy to Cloudflare Pages
         run: npx wrangler@latest pages deploy site --project-name=mohafzaty-pro --branch=main
         env:

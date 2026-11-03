@@ -33,7 +33,7 @@
 
       window.gtag('event', eventName, {
         page_path: window.location.pathname,
-        link_text: (clickedLink.textContent || '').trim().replace(/\\s+/g, ' ').slice(0, 80),
+        link_text: (clickedLink.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 80),
         destination_path: destinationUrl.pathname
       });
     });

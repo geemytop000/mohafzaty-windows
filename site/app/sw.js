@@ -1,6 +1,6 @@
 /* محفظتي برو — تخزين مؤقت لفتح البرنامج بدون إنترنت */
-const V = 'wl-v2.2.2';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png'];
+const V = 'wl-v2.2.3';
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-approved-128.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(V).then(function (c) { return Promise.all(SHELL.map(function (u) { return c.add(u).catch(function () {}); })); }).then(function () { return self.skipWaiting(); }));
 });

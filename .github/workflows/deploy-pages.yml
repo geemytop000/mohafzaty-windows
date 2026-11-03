@@ -17,6 +17,9 @@ jobs:
       - name: Get repository files
         uses: actions/checkout@v4
 
+      - name: Prepare approved wallet icon
+        run: base64 --decode .github/assets/mohafzaty-icon-192.png.b64 > site/app/icon-approved-128.png
+
       - name: Deploy to Cloudflare Pages
         run: npx wrangler@latest pages deploy site --project-name=mohafzaty-pro --branch=main
         env:

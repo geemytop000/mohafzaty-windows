@@ -24,7 +24,7 @@ jobs:
           import struct
           path = 'site/app/icon-transparent-192.png'
           data = open(path, 'rb').read()
-          assert data[:8] == b'\\x89PNG\\r\\n\\x1a\\n', 'Invalid PNG signature'
+          assert data[:8] == b'\x89PNG\r\n\x1a\n', 'Invalid PNG signature'
           width, height = struct.unpack('>II', data[16:24])
           assert (width, height) == (192, 192), f'Unexpected icon dimensions: {width}x{height}'
           print(f'Validated transparent app icon: {width}x{height}, {len(data)} bytes')

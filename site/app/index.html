@@ -8,12 +8,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="mohafzaty-pro">
-<link rel="apple-touch-icon" href="icon-approved-128.png">
-<link rel="icon" href="icon-approved-128.png" type="image/png">
+<meta name="apple-mobile-web-app-title" content="محفظتي برو">
+<link rel="apple-touch-icon" href="icon-transparent-192.png">
+<link rel="icon" href="icon-transparent-192.png" type="image/png" sizes="192x192">
 <link rel="manifest" href="manifest.webmanifest">
 
-<title>محفظتي برو (mohafzaty-pro) — نظام إدارة محافظ الكاش والخدمات</title>
+<title>محفظتي برو</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" media="print" onload="this.media='all'">
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js" onerror="void 0"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js" onerror="void 0"></script>
@@ -1262,7 +1262,7 @@ async function load() {
 
   state.draftMain.name = (state.settings.people && state.settings.people[0]) || '';
   state.draftLedger.name = '';
-  document.title = state.settings.shopName;
+  document.title = 'محفظتي برو';
 
   state.loading = false;
   initSnaps();
@@ -1272,7 +1272,7 @@ async function load() {
     const hasData = state.txns.length > 0 || state.opening.drawer || state.opening.phone;
     /* مفيش كلمة سر افتراضية أبداً: لازم المستخدم يحدد كلمة سر جديدة (حتى لو فيه بيانات قديمة) */
     await firstRunSetup();
-    document.title = state.settings.shopName;
+    document.title = 'محفظتي برو';
   }
   if (state.settings.lockOnOpen) state.locked = true;
   if (LOCAL_OK && localGet(RESTORE_MARK)) {
@@ -1846,7 +1846,7 @@ async function saveSettings() {
     limitIn: vals.li, limitOut: vals.lo, lowCash: vals.lc, lockOnOpen: !!d.lockOnOpen, showCapitalToCashier: !!d.showCapitalToCashier
   });
   if (!(await persist('settings'))) { state.settings = old; return toast('تعذر الحفظ'); }
-  document.title = state.settings.shopName;
+  document.title = 'محفظتي برو';
   audit('settings', 'عمولة السحب ' + vals.wr + '% | الإيداع ' + vals.dr + '% | حد أدنى ' + vals.mc);
   toast('تم حفظ الإعدادات (العمولات الجديدة تُطبّق على العمليات القادمة فقط)');
   render();
@@ -2920,6 +2920,8 @@ function printShiftReport() {
 
 function render() {
   const app = $('app');
+  const sectionTitles = { home: 'محفظتي برو', ops: 'العمليات | محفظتي برو', cust: 'العملاء | محفظتي برو', rep: 'التقارير | محفظتي برو', stats: 'الإحصائيات | محفظتي برو', wallets: 'إدارة الخطوط | محفظتي برو', set: 'الإعدادات | محفظتي برو' };
+  document.title = sectionTitles[state.tab] || 'محفظتي برو';
   if (state.loading) { app.innerHTML = '<div class="boot">جارِ فتح الدفتر…</div>'; return; }
   if (state.locked) { app.innerHTML = lockHtml(); const p = $('lockPw'); if (p) p.focus(); return; }
   const views = { home: viewHome, wallets: viewWallets, ops: viewOps, cust: viewCust, rep: viewReports, stats: viewStats, set: viewSettings };

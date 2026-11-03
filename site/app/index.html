@@ -443,6 +443,9 @@ body.dark-mode .sec-row { background: #121212!important; border-color: #333!impo
 #app .mobile-tabs-more .mobile-more-item{display:flex;min-width:0;min-height:48px;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;padding:9px 12px;border:1px solid #E3DCC7;border-radius:11px;background:#F6F1E4;color:#354235;font-family:inherit;font-size:13px;font-weight:700;line-height:1.2;text-align:right;cursor:pointer}
 #app .mobile-tabs-more .mobile-more-item.on{background:#EAF3EC;color:#2F6F4E;border-color:#2F6F4E}
 #app .mobile-tabs-more .mobile-more-icon{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:20px;height:20px}
+#app .mobile-tabs-more .mobile-more-item.compact-only{display:none}
+body.nav-scrolled #app .tab[data-tab="cust"],body.nav-scrolled #app .tab[data-tab="rep"],body.nav-scrolled #app .tab[data-tab="stats"]{display:none!important}
+body.nav-scrolled #app .mobile-tabs-more .mobile-more-item.compact-only{display:flex}
 body.nav-scrolled #app .tabs{position:fixed;top:max(8px,env(safe-area-inset-top,8px));left:50%;right:auto;width:min(780px,calc(100vw - 24px));margin:0;padding:6px 8px;transform:translateX(-50%);border-radius:14px;box-shadow:0 8px 24px rgba(32,43,34,.2)}
 body.nav-scrolled #app .tabs-spacer{display:block;height:66px}
 body.dark-mode #app .tabs{background:rgba(30,30,30,.96)!important;border-color:#444!important}
@@ -2512,16 +2515,20 @@ function tabsHtml() {
   const isCashier = getCurrentUser().role === 'cashier';
   const mainTabs = [
     ['home', 'الرئيسية'],
-    ['ops', 'العمليات']
-  ];
-  const menuTabs = [
+    ['ops', 'العمليات'],
     ['cust', 'العملاء'],
     ['rep', 'التقارير'],
-    ['stats', 'الإحصائيات'],
+    ['stats', 'الإحصائيات']
+  ];
+  const menuTabs = [
+    ['cust', 'العملاء', 'compact-only'],
+    ['rep', 'التقارير', 'compact-only'],
+    ['stats', 'الإحصائيات', 'compact-only'],
     ['wallets', 'إدارة الخطوط']
   ];
   if (!isCashier) menuTabs.push(['set', 'الإعدادات']);
   menuTabs.push(['support', 'تواصل ودعم']);
+  const compactNav = typeof document !== 'undefined' && document.body.classList.contains('nav-scrolled');
   const buttons = mainTabs.map(t => {
     const active = state.tab === t[0];
     return '<button type="button" class="tab' + (active ? ' on' : '') +
@@ -2532,13 +2539,14 @@ function tabsHtml() {
   const extraMenu = state.mobileMenuOpen
     ? '<div class="mobile-tabs-more" role="group" aria-label="باقي أقسام التطبيق">' + menuTabs.map(t => {
         const active = state.tab === t[0];
-        return '<button type="button" class="mobile-more-item' + (active ? ' on' : '') +
+        return '<button type="button" class="mobile-more-item' + (t[2] ? ' ' + t[2] : '') + (active ? ' on' : '') +
           '" data-act="tab" data-tab="' + t[0] + '"' + (active ? ' aria-current="page"' : '') +
           '><span class="mobile-more-icon">' + navIcon(t[0]) +
           '</span><span>' + t[1] + '</span></button>';
       }).join('') + '</div>'
     : '<div class="mobile-tabs-more" hidden></div>';
-  const moreActive = !['home', 'ops'].includes(state.tab);
+  const moreActive = ['wallets', 'set', 'support'].includes(state.tab) ||
+    (compactNav && ['cust', 'rep', 'stats'].includes(state.tab));
   const moreButton = '<button type="button" class="tab tab-mobile-more' +
     ((moreActive || state.mobileMenuOpen) ? ' on' : '') +
     '" data-act="mobileMore" aria-haspopup="true" aria-expanded="' +
@@ -3296,6 +3304,12 @@ async function tryUnlock() {
       if (scrolled && nav && spacer) spacer.style.height = Math.ceil(nav.getBoundingClientRect().height) + 'px';
       if (document.body.classList.contains('nav-scrolled') !== scrolled) {
         document.body.classList.toggle('nav-scrolled', scrolled);
+      }
+      const moreButton = document.querySelector('#app .tab-mobile-more');
+      if (moreButton) {
+        const moreActive = ['wallets', 'set', 'support'].includes(state.tab) ||
+          (scrolled && ['cust', 'rep', 'stats'].includes(state.tab));
+        moreButton.classList.toggle('on', moreActive || !!state.mobileMenuOpen);
       }
       if (!scrolled && spacer) spacer.style.height = '0px';
     };

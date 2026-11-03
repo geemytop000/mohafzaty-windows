@@ -5,6 +5,7 @@ on:
     branches:
       - wallet-guides-and-article-cta
       - add-ga4-website-analytics
+      - track-registration-download-clicks
     paths:
       - 'site/**'
       - '.github/workflows/preview-pages.yml'

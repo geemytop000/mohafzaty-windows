@@ -1,0 +1,46 @@
+name: Export latest Mohafzaty Pro website ZIP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'site/**'
+      - '.github/workflows/deploy-pages.yml'
+      - '.github/workflows/export-site-zip.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package-site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get repository files
+        uses: actions/checkout@v4
+
+      - name: Rebuild and validate transparent app icon
+        run: |
+          cat .github/assets/icon-parts/icon-*.b64 | tr -d '\r\n' | base64 --decode > site/app/icon-transparent-192.png
+          python - <<'PY'
+          import struct
+          from pathlib import Path
+          data = Path('site/app/icon-transparent-192.png').read_bytes()
+          assert data[:8] == b'\x89PNG\r\n\x1a\n', 'Invalid PNG signature'
+          width, height = struct.unpack('>II', data[16:24])
+          assert (width, height) == (192, 192), f'Unexpected dimensions: {width}x{height}'
+          assert data[25] in (4, 6), f'PNG has no alpha channel: color type {data[25]}'
+          print(f'Validated transparent icon: {width}x{height}, {len(data)} bytes')
+          PY
+
+      - name: Create website ZIP
+        run: zip -qr mohafzaty-pro-site-latest.zip site
+
+      - name: Upload website ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: mohafzaty-pro-site-zip
+          path: mohafzaty-pro-site-latest.zip
+          if-no-files-found: error
+          retention-days: 30

@@ -1573,13 +1573,6 @@ function syncTotalPhoneOpening() {
 }
 
 async function addWalletModal() {
-  const isCashier = getCurrentUser().role === 'cashier';
-  if (isCashier) {
-    const ok = await askPw('إدخال كلمة سر المدير/الخطوط لإضافة رقم محفظة جديد', 'wallets');
-    if (!ok) return;
-  } else {
-    if (!(await requireAuth('إضافة رقم محفظة جديد', 'wallets'))) return;
-  }
   const fields = [
     { k: 'phone', label: 'رقم الموبايل / المحفظة (مثال: 01012345678)' },
     { k: 'label', label: 'اسم المحفظة / الشبكة (مثال: فودافون كاش - خط 1)' },
@@ -1609,13 +1602,6 @@ async function addWalletModal() {
 }
 
 async function editWalletModal(wid) {
-  const isCashier = getCurrentUser().role === 'cashier';
-  if (isCashier) {
-    const ok = await askPw('إدخال كلمة سر المدير/الخطوط لتعديل الخط', 'wallets');
-    if (!ok) return;
-  } else {
-    if (!(await requireAuth('تعديل خط المحفظة', 'wallets'))) return;
-  }
   const ws = getWallets().slice();
   const w = ws.find(x => x.id === wid);
   if (!w) return;
@@ -1641,13 +1627,6 @@ async function editWalletModal(wid) {
 }
 
 async function delWallet(wid) {
-  const isCashier = getCurrentUser().role === 'cashier';
-  if (isCashier) {
-    const ok = await askPw('إدخال كلمة سر المدير/الخطوط لحذف الخط', 'wallets');
-    if (!ok) return;
-  } else {
-    if (!(await requireAuth('حذف خط المحفظة', 'wallets'))) return;
-  }
   const ws = getWallets();
   if (ws.length <= 1) return toast('لا يمكن حذف المحفظة الوحيدة');
   const w = ws.find(x => x.id === wid);
@@ -2851,7 +2830,6 @@ function securitySettingsHtml() {
   const catList = [
     { k: 'admin', label: 'حساب المدير (Admin)', desc: 'التبديل لحساب المدير من الكاشير وإدارة الحسابات' },
     { k: 'settings', label: 'شاشة الإعدادات (Settings)', desc: 'فتح الإعدادات العامة وحفظ العمولات وخيارات الأمان' },
-    { k: 'wallets', label: 'إدارة الخطوط والحدود (Wallets)', desc: 'إضافة وتعديل وحذف أرقام المحافظ والحدود اليومية والشهرية' },
     { k: 'void', label: 'الإلغاء وتعديل الأرصدة (Void & Adjust)', desc: 'إلغاء العمليات بقيد عكسي، وتعديل الرصيد الافتتاحي وتصحيح الدفعات' },
     { k: 'cashier', label: 'التبديل للكاشير (Cashier)', desc: 'كلمة سر التحويل لحساب الكاشير (اختياري)' }
   ];
@@ -2860,7 +2838,7 @@ function securitySettingsHtml() {
   if (!isCustom) {
     body = '<div style="background:var(--paper);border:1px solid var(--line-soft);border-radius:12px;padding:14px;margin-top:10px">' +
       '<div style="font-size:13px;font-weight:700;margin-bottom:6px">🔑 كلمة السر العامة الموحدة (Master Password)</div>' +
-      '<p class="hint" style="margin-bottom:12px">تُستخدم نفس كلمة السر هذه في جميع الأقسام: فتح الإعدادات، إدارة الخطوط، والتبديل للمدير.</p>' +
+      '<p class="hint" style="margin-bottom:12px">تُستخدم كلمة السر لحماية الإعدادات والتبديل لحساب المدير.</p>' +
       '<div class="field"><label>كلمة السر الحالية</label><input type="password" autocomplete="off" data-bind="draftPw.old" value="' + esc(state.draftPw.old) + '"></div>' +
       '<div class="field-row"><div class="field"><label>كلمة السر الجديدة</label><input type="password" autocomplete="new-password" data-bind="draftPw.n1" value="' + esc(state.draftPw.n1) + '"></div>' +
       '<div class="field"><label>تأكيد الجديدة</label><input type="password" autocomplete="new-password" data-bind="draftPw.n2" value="' + esc(state.draftPw.n2) + '"></div></div>' +
@@ -2954,14 +2932,6 @@ function viewSettings() {
 
 securitySettingsHtml() +
 
-    '<div class="card" aria-labelledby="supportContactTitle" style="border-radius:12px;background:var(--paper);border-color:var(--line-soft)">' +
-    '<h3 id="supportContactTitle">💬 تواصل معنا</h3>' +
-    '<p class="hint">للدعم أو الاستفسارات، اختر وسيلة التواصل المناسبة.</p>' +
-    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
-    '<a href="https://wa.me/201555560865" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 14px;border-radius:999px;background:var(--credit);color:#fff;text-decoration:none;font-weight:700">💬 WhatsApp · 01555560865</a>' +
-    '<a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=mohafzatypro%40gmail.com" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--paper-raised);color:var(--ink);text-decoration:none">✉️ mohafzatypro@gmail.com</a>' +
-    '<a href="https://www.facebook.com/share/14vAuBAnGHx/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--paper-raised);color:var(--ink);text-decoration:none">📘 Facebook</a>' +
-    '</div></div>' +
 
     '<div class="card"><h3>النسخ الاحتياطي والتصدير</h3>' +
     '<p class="hint">آخر نسخة احتياطية: ' + (s.lastBackup ? new Date(s.lastBackup).toLocaleString('ar-EG') : 'لسه ما اتعملتش') + '</p>' +
@@ -2981,6 +2951,18 @@ securitySettingsHtml() +
 
     '<div style="text-align:center;margin-top:24px">' +
     '<div style="font-size:11px;color:var(--ink-soft);margin-top:10px">محفظتي برو (mohafzaty-pro) · الإصدار ' + APP_VERSION + '</div></div>';
+}
+
+
+function viewContact() {
+  return '<div class="card support-card" aria-labelledby="supportContactTitle">' +
+    '<h3 id="supportContactTitle">تواصل معنا والدعم الفني</h3>' +
+    '<p class="hint">يسعدنا مساعدتك والإجابة عن استفساراتك. اختر وسيلة التواصل المناسبة.</p>' +
+    '<div style="display:grid;gap:10px;margin-top:14px">' +
+    '<a href="https://wa.me/201555560865" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:12px;min-height:58px;padding:12px 14px;border-radius:14px;background:var(--credit);color:#fff;text-decoration:none;font-weight:700"><span>◉</span><span>واتساب الدعم</span><span style="margin-inline-start:auto;direction:ltr">01555560865</span></a>' +
+    '<a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=mohafzatypro%40gmail.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:12px;min-height:58px;padding:12px 14px;border-radius:14px;border:1px solid var(--border);background:var(--paper-raised);color:var(--ink);text-decoration:none;font-weight:700"><span>✉</span><span>البريد الإلكتروني</span><span style="margin-inline-start:auto;font-size:12px">mohafzatypro@gmail.com</span></a>' +
+    '<a href="https://www.facebook.com/share/14vAuBAnGHx/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:12px;min-height:58px;padding:12px 14px;border-radius:14px;border:1px solid var(--border);background:var(--paper-raised);color:var(--ink);text-decoration:none;font-weight:700"><span>f</span><span>صفحة فيسبوك</span><span style="margin-inline-start:auto">فتح الصفحة ←</span></a>' +
+    '</div></div>';
 }
 
 function detailModalHtml() {
@@ -3127,11 +3109,11 @@ function printShiftReport() {
 
 function render() {
   const app = $('app');
-  const sectionTitles = { home: 'محفظتي برو', ops: 'العمليات | محفظتي برو', cust: 'العملاء | محفظتي برو', rep: 'التقارير | محفظتي برو', stats: 'الإحصائيات | محفظتي برو', wallets: 'إدارة الخطوط | محفظتي برو', set: 'الإعدادات | محفظتي برو' };
+  const sectionTitles = { home: 'محفظتي برو', ops: 'العمليات | محفظتي برو', cust: 'العملاء | محفظتي برو', rep: 'التقارير | محفظتي برو', stats: 'الإحصائيات | محفظتي برو', wallets: 'إدارة الخطوط | محفظتي برو', set: 'الإعدادات | محفظتي برو', support: 'تواصل ودعم | محفظتي برو' };
   document.title = sectionTitles[state.tab] || 'محفظتي برو';
   if (state.loading) { app.innerHTML = '<div class="boot">جارِ فتح الدفتر…</div>'; return; }
   if (state.locked) { app.innerHTML = lockHtml(); const p = $('lockPw'); if (p) p.focus(); return; }
-  const views = { home: viewHome, wallets: viewWallets, ops: viewOps, cust: viewCust, rep: viewReports, stats: viewStats, set: viewSettings };
+  const views = { home: viewHome, wallets: viewWallets, ops: viewOps, cust: viewCust, rep: viewReports, stats: viewStats, set: viewSettings, support: viewContact };
   app.innerHTML = '<div class="wrap">' + headerHtml() + bannersHtml() + tabsHtml() + (views[state.tab] || viewHome)() + '</div>' + detailModalHtml();
   updatePreviews();
 }
@@ -3196,7 +3178,6 @@ async function goTab(t) {
     return;
   }
   if (t === 'set' && !(await requireAuth('الدخول للإعدادات', 'settings'))) return;
-  if (t === 'wallets' && !isCashier && !(await requireAuth('الدخول لإدارة الخطوط', 'wallets'))) return;
   state.tab = t; state.panel = null; state.err = ''; state.mobileMenuOpen = false;
   if (t === 'set') initSetDrafts();
   render(); if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);

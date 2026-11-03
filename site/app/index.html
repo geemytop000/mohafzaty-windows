@@ -23,10 +23,33 @@
   window.gtag('config', 'G-HTXW8HD2WT');
 </script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" media="print" onload="this.media='all'">
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js" onerror="void 0"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js" onerror="void 0"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js" onerror="void 0"></script>
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" onerror="void 0"></script>
+<script>
+/* Load Firebase after the HTML parser has progressed so the login screen can paint sooner. */
+window.firebaseSdkReady = (function () {
+  var sources = [
+    'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js',
+    'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js',
+    'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js'
+  ];
+  return sources.reduce(function (queue, src) {
+    return queue.then(function () {
+      return new Promise(function (resolve, reject) {
+        var script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = function () { reject(new Error('تعذر تحميل مكتبات تسجيل الدخول')); };
+        document.head.appendChild(script);
+      });
+    });
+  }, Promise.resolve()).then(function () {
+    return true;
+  }).catch(function (error) {
+    console.warn('Firebase SDK load failed', error);
+    return false;
+  });
+})();
+</script>
 </head>
 <body style="margin:0;">
 <div id="app" dir="rtl"><div class="boot">جارِ فتح الدفتر…</div></div>
@@ -34,7 +57,7 @@
 <style>
 #app{
   --paper:#EDE7D8;--paper-raised:#F6F1E4;--line:#D3C6A3;--line-soft:#E1D6B9;--border:#C4B689;
-  --ink:#202B22;--ink-soft:#6B7263;--brass:#8C6E2F;--credit:#2F6F4E;--credit-bg:#E4EEE3;
+  --ink:#202B22;--ink-soft:#596153;--brass:#8C6E2F;--credit:#2F6F4E;--credit-bg:#E4EEE3;
   --debit:#8C3A2E;--debit-bg:#F1E2DC;--warn-bg:#F1E9D2;
   font-family:'Tajawal','Segoe UI',Tahoma,sans-serif;color:var(--ink);background:var(--paper);
   min-height:100vh;direction:rtl;box-sizing:border-box;
@@ -150,7 +173,7 @@
 .modal-overlay{position:fixed;inset:0;background:rgba(32,43,34,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000;font-family:'Tajawal','Segoe UI',Tahoma,sans-serif;direction:rtl}
 .modal-card{background:var(--paper-raised,#F6F1E4);border:1px solid var(--border,#C4B689);border-radius:6px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;padding:18px;color:#202B22}
 .modal-card h3{margin:0 0 14px;font-size:16px;font-weight:700;border-bottom:2px solid #202B22;padding-bottom:10px}
-.modal-card .field label{display:block;font-size:12.5px;color:#6B7263;margin-bottom:5px}
+.modal-card .field label{display:block;font-size:12.5px;color:#596153;margin-bottom:5px}
 .modal-card .field input{width:100%;font-size:14px;padding:9px 10px;border:1px solid #C4B689;border-radius:3px;background:#EDE7D8;font-family:inherit}
 .modal-card .err{color:#8C3A2E;font-size:12.5px;margin:0 0 10px;min-height:16px}
 .modal-card .btn-save{width:100%;margin-bottom:8px;background:#8C6E2F;color:#fff;border:none;border-radius:3px;padding:11px;font-weight:700;font-family:inherit;cursor:pointer}
@@ -217,7 +240,7 @@ html,body{overflow-x:hidden}
 .mdl-ov{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(20,32,26,.6);backdrop-filter:blur(3px)}
 .mdl{background:#F9F5EA;border-radius:22px;padding:22px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.35)}
 .mdl h3{margin:0 0 12px;font-size:18px}
-.mdl label{display:block;font-size:13px;color:#6B7263;margin:10px 0 4px}
+.mdl label{display:block;font-size:13px;color:#596153;margin:10px 0 4px}
 .mdl input{width:100%;box-sizing:border-box;padding:13px;border:1.5px solid #D7CBA5;border-radius:12px;font-size:16px;font-family:inherit;background:#fff}
 .mdl input:focus{outline:none;border-color:#2F6F4E;box-shadow:0 0 0 3px rgba(47,111,78,.15)}
 .mdl-b{display:flex;gap:10px;margin-top:16px}
@@ -1129,7 +1152,7 @@ function askPw(reason, category) {
       '<div class="field"><label>' + lbl + '</label><input type="password" id="pwModalInput" autocomplete="off"></div>' +
       '<div class="err" id="pwModalErr"></div>' +
       '<button class="btn-save" id="pwOk">تأكيد</button>' +
-      '<button class="btn-save" id="pwCancel" style="background:#6B7263">إلغاء</button>'
+      '<button class="btn-save" id="pwCancel" style="background:#596153">إلغاء</button>'
     );
     const inp = ov.querySelector('#pwModalInput'), err = ov.querySelector('#pwModalErr');
     inp.focus();
@@ -1954,9 +1977,27 @@ function downloadBlob(name, data, mime) {
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
-function downloadMonth(mk) {
-  try { const f = monthFile(mk); downloadBlob(f.name, f.data, f.mime); }
-  catch (e) { console.error(e); toast('تعذر إنشاء الملف'); }
+var xlsxLoadPromise = null;
+function ensureXlsx() {
+  if (typeof XLSX !== 'undefined') return Promise.resolve(true);
+  if (!xlsxLoadPromise) {
+    xlsxLoadPromise = new Promise(function (resolve) {
+      var script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      script.async = true;
+      script.onload = function () { resolve(typeof XLSX !== 'undefined'); };
+      script.onerror = function () { xlsxLoadPromise = null; resolve(false); };
+      document.head.appendChild(script);
+    });
+  }
+  return xlsxLoadPromise;
+}
+async function downloadMonth(mk) {
+  try {
+    await ensureXlsx();
+    const f = monthFile(mk);
+    downloadBlob(f.name, f.data, f.mime);
+  } catch (e) { console.error(e); toast('تعذر إنشاء الملف'); }
 }
 function backupObject() {
   const s = Object.assign({}, state.settings); delete s.pwHash; delete s.pwSalt; delete s.passwords;
@@ -2056,6 +2097,7 @@ async function writeFile(name, data) {
 async function autoExport() {
   if (state.folder.status !== 'granted' || !dirHandle) return;
   try {
+    await ensureXlsx();
     for (const m of getAvailableMonths()) { const f = monthFile(m); await writeFile(f.name, f.data); }
     await writeFile('backup-latest.json', JSON.stringify(backupObject()));
     state.settings.lastBackup = Date.now(); persist('settings');
@@ -2565,7 +2607,7 @@ function chartSvg(mk, list) {
   const bars = vals.map((v, i) => {
     const h = Math.round(v / max * (H - 24));
     return '<rect x="' + (i * bw + 2) + '" y="' + (H - 16 - h) + '" width="' + (bw - 4) + '" height="' + h + '" fill="#8C6E2F"><title>' + (i + 1) + ': ' + fmt(v) + '</title></rect>' +
-      ((i + 1) % 5 === 0 || i === 0 ? '<text x="' + (i * bw + bw / 2) + '" y="' + (H - 3) + '" font-size="10" text-anchor="middle" fill="#6B7263">' + (i + 1) + '</text>' : '');
+      ((i + 1) % 5 === 0 || i === 0 ? '<text x="' + (i * bw + bw / 2) + '" y="' + (H - 3) + '" font-size="10" text-anchor="middle" fill="#596153">' + (i + 1) + '</text>' : '');
   }).join('');
   return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto" role="img" aria-label="العمولة اليومية">' + bars + '</svg>';
 }
@@ -2774,7 +2816,7 @@ securitySettingsHtml() +
       f.status === 'granted' ? '<p class="hint" style="color:var(--credit)">✅ متصل بالمجلد "' + esc(f.name) + '" — بيتحدّث بعد كل عملية (ملفات الشهور + backup-latest.json).</p><button class="link" data-act="chooseFolder">تغيير المجلد</button>' :
       f.status === 'prompt' ? '<p class="hint">المجلد "' + esc(f.name) + '" محتاج إذن تاني.</p><button class="btn-save" data-act="reconnect" style="width:auto;padding:8px 16px">إعادة الاتصال</button>' :
       '<p class="hint">مش متصل بمجلد. اختار مجلد (يفضّل على فلاشة أو Google Drive) عشان النسخ الاحتياطية تتحدّث لوحدها.</p><button class="btn-save" data-act="chooseFolder" style="width:auto;padding:8px 16px">اختيار مجلد</button>') +
-    '<hr class="rule"><h4>ملفات الشهور ' + (typeof XLSX === 'undefined' ? '(CSV - ملف Excel محتاج إنترنت أول مرة)' : '(Excel)') + '</h4>' + monthsRows + '</div>' +
+    '<hr class="rule"><h4>ملفات الشهور (Excel عند الطلب؛ CSV احتياطيًا)</h4>' + monthsRows + '</div>' +
 
     '<div class="card"><h3>سجل التدقيق (آخر 40 إجراء حساس)</h3>' +
     (state.audit.length ? '<table class="tbl"><tr><th>الوقت</th><th>الإجراء</th><th>التفاصيل</th></tr>' +
@@ -3293,15 +3335,15 @@ function showAuthForm(mode, note) {
   const o = authOverlay(
     '<div style="text-align:center;font-size:34px">💼</div>' +
     '<h2 style="text-align:center;margin:4px 0 2px">محفظتي برو</h2>' +
-    '<div style="text-align:center;font-size:13px;color:#6B7263;margin-bottom:14px">' + (reg ? 'أنشئ حسابك المجاني وابدأ' : 'سجّل دخولك لفتح دفترك من أي جهاز') + '</div>' +
+    '<div style="text-align:center;font-size:13px;color:#596153;margin-bottom:14px">' + (reg ? 'أنشئ حسابك المجاني وابدأ' : 'سجّل دخولك لفتح دفترك من أي جهاز') + '</div>' +
     '<div style="display:flex;gap:6px;margin-bottom:14px"><button id="auTabIn" style="flex:1;padding:9px;border:0;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;background:' + (reg ? '#E3DCC7' : '#2f4a39') + ';color:' + (reg ? '#202B22' : '#fff') + '">دخول</button>' +
     '<button id="auTabReg" style="flex:1;padding:9px;border:0;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;background:' + (reg ? '#2f4a39' : '#E3DCC7') + ';color:' + (reg ? '#fff' : '#202B22') + '">حساب جديد</button></div>' +
-    (reg ? '<label style="font-size:13px">الاسم</label><input id="auName" style="' + AUTH_IN + '" autocomplete="name">' : '') +
-    '<label style="font-size:13px">البريد الإلكتروني</label><input id="auEmail" type="email" style="' + AUTH_IN + ';direction:ltr;text-align:left" autocomplete="email">' +
-    '<label style="font-size:13px">كلمة المرور</label><input id="auPw" type="password" style="' + AUTH_IN + ';direction:ltr;text-align:left" autocomplete="' + (reg ? 'new-password' : 'current-password') + '">' +
+    (reg ? '<label for="auName" style="font-size:13px">الاسم</label><input id="auName" style="' + AUTH_IN + '" autocomplete="name">' : '') +
+    '<label for="auEmail" style="font-size:13px">البريد الإلكتروني</label><input id="auEmail" type="email" style="' + AUTH_IN + ';direction:ltr;text-align:left" autocomplete="email">' +
+    '<label for="auPw" style="font-size:13px">كلمة المرور</label><input id="auPw" type="password" style="' + AUTH_IN + ';direction:ltr;text-align:left" autocomplete="' + (reg ? 'new-password' : 'current-password') + '">' +
     '<div id="auMsg" style="min-height:20px;font-size:13px;color:#8C3A2E;margin-bottom:8px">' + (note || '') + '</div>' +
     '<button id="auGo" style="' + AUTH_BTN + '">' + (reg ? 'إنشاء الحساب' : 'دخول') + '</button>' +
-    (reg ? '<div style="font-size:12px;color:#6B7263;margin-top:10px;text-align:center">بالتسجيل أنت توافق على <a href="/terms.html" target="_blank" style="color:#2F6F4E">شروط الاستخدام</a> و<a href="/privacy.html" target="_blank" style="color:#2F6F4E">سياسة الخصوصية</a></div>'
+    (reg ? '<div style="font-size:12px;color:#596153;margin-top:10px;text-align:center">بالتسجيل أنت توافق على <a href="/terms.html" target="_blank" style="color:#2F6F4E">شروط الاستخدام</a> و<a href="/privacy.html" target="_blank" style="color:#2F6F4E">سياسة الخصوصية</a></div>'
           : '<div style="text-align:center;margin-top:12px"><a href="#" id="auForgot" style="font-size:13px;color:#2F6F4E">نسيت كلمة المرور؟</a></div>')
   );
   const q = function (s) { return o.querySelector(s); };
@@ -3343,7 +3385,7 @@ function authGate() {
     const finish = function () { if (done) return; done = true; const o = document.getElementById('authOv'); if (o) o.remove(); resolve(); };
     if (!fbInit()) {
       if (lsGet('wl:uid')) { setTimeout(function () { toast('شغال بدون إنترنت — المزامنة هتتفعل لما الإنترنت يرجع'); }, 800); return finish(); }
-      const o = authOverlay('<div style="text-align:center;font-size:34px">📡</div><h3 style="text-align:center">محتاج إنترنت لأول تسجيل دخول</h3><div style="font-size:13px;color:#6B7263;text-align:center;margin-bottom:14px">اتأكد من الاتصال وبعدين حاول تاني.</div><button id="auRetry" style="' + AUTH_BTN + '">إعادة المحاولة</button>');
+      const o = authOverlay('<div style="text-align:center;font-size:34px">📡</div><h3 style="text-align:center">محتاج إنترنت لأول تسجيل دخول</h3><div style="font-size:13px;color:#596153;text-align:center;margin-bottom:14px">اتأكد من الاتصال وبعدين حاول تاني.</div><button id="auRetry" style="' + AUTH_BTN + '">إعادة المحاولة</button>');
       o.querySelector('#auRetry').onclick = function () { location.reload(); };
       return;
     }
@@ -3377,9 +3419,9 @@ function accountDialog() {
   const ov = acctModalShell(
     '<h3 style="margin:0 0 4px">☁️ حسابي</h3>' +
     '<div style="font-size:14px;margin-bottom:2px">' + esc(u.displayName || '') + '</div>' +
-    '<div style="font-size:13px;color:#6B7263;direction:ltr;text-align:right">' + esc(u.email || '') + '</div>' +
+    '<div style="font-size:13px;color:#596153;direction:ltr;text-align:right">' + esc(u.email || '') + '</div>' +
     '<div style="margin:10px 0;font-size:13px">' + (ver ? '✅ البريد متحقق منه' : '⚠️ البريد لسه ما اتحققش منه — افتح الرابط اللي بعتناه على بريدك') + '</div>' +
-    '<div id="acSync" style="font-size:13px;color:#6B7263;margin-bottom:6px">' + (syncSt.err ? ('⚠️ ' + esc(syncSt.err)) : (syncSt.ok ? ('آخر مزامنة: ' + new Date(syncSt.ok).toLocaleTimeString('ar-EG')) : 'جارِ المزامنة…')) + '</div>' +
+    '<div id="acSync" style="font-size:13px;color:#596153;margin-bottom:6px">' + (syncSt.err ? ('⚠️ ' + esc(syncSt.err)) : (syncSt.ok ? ('آخر مزامنة: ' + new Date(syncSt.ok).toLocaleTimeString('ar-EG')) : 'جارِ المزامنة…')) + '</div>' +
     '<div id="acMsg" style="min-height:18px;font-size:13px;color:#8C3A2E"></div>' +
     '<button id="acSyncNow" style="' + bs + 'background:#2F6F4E;color:#fff">🔄 مزامنة الآن</button>' +
     (ver ? '' : '<button id="acResend" style="' + bs + 'background:#8C6E2F;color:#fff">إعادة إرسال رابط التحقق</button><button id="acRecheck" style="' + bs + 'background:#E3DCC7">تحققت من البريد — حدّث الحالة</button>') +
@@ -3425,7 +3467,7 @@ function deleteAccountFlow() {
   q('#dlGo').onclick = async function () {
     const msg = q('#dlMsg'), pw = q('#dlPw').value;
     if (!pw) { msg.textContent = 'اكتب كلمة المرور'; return; }
-    q('#dlGo').disabled = true; msg.style.color = '#6B7263'; msg.textContent = 'جارِ الحذف…';
+    q('#dlGo').disabled = true; msg.style.color = '#596153'; msg.textContent = 'جارِ الحذف…';
     try {
       const u = fbAuth.currentUser;
       await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email, pw));
@@ -3441,7 +3483,9 @@ function deleteAccountFlow() {
 }
 
 function registerSW() { try { if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {} }
-authGate().then(function () { registerSW(); return load(); });
+Promise.resolve(window.firebaseSdkReady).catch(function () { return false; })
+  .then(function () { return authGate(); })
+  .then(function () { registerSW(); return load(); });
 
 
 function transferBaseOptions() {
@@ -3821,7 +3865,7 @@ let syncBtn = null;
 function setSyncBtn() {
   if (!syncBtn) return;
   const cfg = getSyncCfg();
-  syncBtn.style.background = !cfg ? '#6B7263' : syncSt.err ? '#8C3A2E' : syncSt.busy ? '#8C6E2F' : '#2F6F4E';
+  syncBtn.style.background = !cfg ? '#596153' : syncSt.err ? '#8C3A2E' : syncSt.busy ? '#8C6E2F' : '#2F6F4E';
   syncBtn.title = !cfg ? 'المزامنة (غير مفعّلة)' : syncSt.err ? 'خطأ في المزامنة: ' + syncSt.err : syncSt.ok ? 'آخر مزامنة: ' + new Date(syncSt.ok).toLocaleTimeString('ar-EG') : 'جارِ المزامنة';
 }
 function syncDialog() {
@@ -3831,7 +3875,7 @@ function syncDialog() {
   ov.style.cssText = 'position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(20,32,26,.7);font-family:Tajawal,sans-serif';
   const st = 'width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid #C4B689;font-size:14px;margin:4px 0 10px;font-family:inherit;direction:ltr';
   ov.innerHTML = '<div style="background:#F6F1E4;border-radius:20px;padding:22px;max-width:420px;width:100%;color:#202B22">' +
-    '<h3 style="margin:0 0 4px">🔄 ربط الأجهزة</h3><div style="font-size:13px;color:#6B7263;margin-bottom:12px">نفس رقم الربط على كل جهاز = نفس البيانات. البيانات بتتشفر قبل ما تتبعت. تنبيه: المزامنة بتدمج النسخ ولا تمنع حذف السجلات (الحذف الناتج عن الاسترجاع بيوصل لباقي الأجهزة).</div>' +
+    '<h3 style="margin:0 0 4px">🔄 ربط الأجهزة</h3><div style="font-size:13px;color:#596153;margin-bottom:12px">نفس رقم الربط على كل جهاز = نفس البيانات. البيانات بتتشفر قبل ما تتبعت. تنبيه: المزامنة بتدمج النسخ ولا تمنع حذف السجلات (الحذف الناتج عن الاسترجاع بيوصل لباقي الأجهزة).</div>' +
     '<label style="font-size:13px">رابط قاعدة البيانات (Firebase)</label><input id="sy-url" style="' + st + '" placeholder="https://xxxx-default-rtdb.firebaseio.com" value="' + (cfg.url || '') + '">' +
     '<label style="font-size:13px">رقم الربط</label><div style="display:flex;gap:6px"><input id="sy-code" style="' + st + ';flex:1" placeholder="XXXX-XXXX-XXXX-XXXX" value="' + (cfg.code || '') + '"><button id="sy-gen" style="margin:4px 0 10px;border:0;border-radius:12px;padding:0 12px;background:#8C6E2F;color:#fff;cursor:pointer;font-family:inherit">جديد</button></div>' +
     '<div id="sy-msg" style="min-height:20px;font-size:13px;color:#8C3A2E;margin-bottom:8px">' + (syncSt.err ? syncSt.err : syncSt.ok ? 'متصل ✓' : '') + '</div>' +
@@ -3853,7 +3897,7 @@ function syncDialog() {
     if (code.length < 12) { msg.textContent = 'رقم الربط قصير (اضغط جديد لإنشاء رقم)'; return; }
     const c = { url: url, code: code };
     localStorage.setItem('wl:sync:' + PROFILE, JSON.stringify(c));
-    msg.style.color = '#6B7263'; msg.textContent = 'جارِ الربط…';
+    msg.style.color = '#596153'; msg.textContent = 'جارِ الربط…';
     try {
       const R = await syncFetch(c);
       if (R) { meta.settingsAt = -1; meta.openingAt = -1; saveMeta(); }

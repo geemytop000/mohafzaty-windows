@@ -14,6 +14,14 @@
 <link rel="manifest" href="manifest.webmanifest">
 
 <title>محفظتي برو</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HTXW8HD2WT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ window.dataLayer.push(arguments); };
+  window.gtag('js', new Date());
+  window.gtag('config', 'G-HTXW8HD2WT');
+</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" media="print" onload="this.media='all'">
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js" onerror="void 0"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js" onerror="void 0"></script>
@@ -3308,6 +3316,10 @@ function showAuthForm(mode, note) {
     try {
       if (reg) {
         const cred = await fbAuth.createUserWithEmailAndPassword(email, pw);
+        // Record a conversion only after Firebase confirms that the account was created.
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'sign_up', { method: 'email' });
+        }
         try { await cred.user.updateProfile({ displayName: name }); } catch (e) {}
         try { await cred.user.sendEmailVerification(); } catch (e) {}
         lsSet('wl:welcome', '1');

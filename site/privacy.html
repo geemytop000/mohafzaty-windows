@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<!-- Google tag (gtag.js) -->
+<script>
+  // Collect production-site visits only; keep Cloudflare preview traffic out of reports.
+  if (["mohafzatypro.com", "www.mohafzatypro.com"].includes(window.location.hostname)) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){window.dataLayer.push(arguments);};
+    window.gtag('js', new Date());
+    window.gtag('config', 'G-HTXW8HD2WT');
+    var googleAnalyticsScript = document.createElement('script');
+    googleAnalyticsScript.async = true;
+    googleAnalyticsScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-HTXW8HD2WT';
+    document.head.appendChild(googleAnalyticsScript);
+  }
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>سياسة الخصوصية — محفظتي برو</title>
@@ -42,6 +57,8 @@
 <h2>أين تُخزَّن البيانات</h2>
 <p>تُحفظ نسخة على جهازك (داخل المتصفح)، ونسخة في حسابك على خدمات Google Firebase (Authentication وCloud Firestore). كل مستخدم تُحفظ بياناته في مساحة خاصة به، وقواعد الأمان تمنع أي حساب من قراءة بيانات حساب آخر.</p>
 <div class="note"><b>شفافية:</b> بيانات الدفتر لا تُشفَّر طرفيًا (end-to-end)، فمالك الخدمة تقنيًا لديه صلاحية الوصول إلى قاعدة البيانات لأغراض الصيانة والدعم، ولا نستخدم هذه الصلاحية للاطلاع على بياناتك إلا بطلبك أو لضرورة تقنية.</div>
+<h2>قياس زيارات الموقع</h2>
+<p>نستخدم خدمة Google Analytics 4 على صفحات الموقع العامة والمقالات لفهم عدد الزيارات والصفحات التي يطالعها الزوار ومصادر الوصول والتفاعل مع المحتوى. قد تستخدم الخدمة ملفات تعريف الارتباط ومعرّفات تقنية لجمع معلومات عن المتصفح والجهاز وطريقة استخدام الموقع، ثم تعالج Google هذه البيانات لتقديم تقارير إحصائية لنا. لا نستخدم هذا القياس لتشغيل دفتر الحسابات، ولا نرسل إليه عمدًا بيانات العمليات أو أرصدة العملاء أو كلمات المرور. يمكنك معرفة المزيد عن معالجة Google للبيانات من <a href="https://policies.google.com/privacy?hl=ar" target="_blank" rel="noopener noreferrer">سياسة خصوصية Google</a>.</p>
 <h2>مشاركة البيانات</h2>
 <p>نستعين بخدمات Google Firebase لتشغيل الحسابات والتخزين، وبخدمة Cloudflare لاستضافة الموقع. لا نشارك بياناتك مع جهات أخرى إلا إذا طُلب ذلك بموجب القانون.</p>
 <h2>حقوقك</h2>

@@ -59,6 +59,8 @@ jobs:
       - name: Build signed APK
         working-directory: android
         env:
+          ANDROID_VERSION_CODE: ${{ github.run_number }}
+          ANDROID_VERSION_NAME: 1.0.${{ github.run_number }}
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/mohafzaty-release.jks
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -69,13 +71,13 @@ jobs:
 
       - name: Verify APK signature
         run: |
-          apksigner verify --verbose "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
 
       - name: Publish APK release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: android-v1.0.0-build-${{ github.run_number }}
-          name: محفظتي برو للأندرويد 1.0.0 (Build ${{ github.run_number }})
+          tag_name: android-v1.0.${{ github.run_number }}
+          name: محفظتي برو للأندرويد 1.0.${{ github.run_number }}
           make_latest: true
           generate_release_notes: true
           files: mohafzaty-pro-android.apk

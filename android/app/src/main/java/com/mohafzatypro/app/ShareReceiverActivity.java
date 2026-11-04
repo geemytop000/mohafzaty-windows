@@ -14,7 +14,7 @@ public class ShareReceiverActivity extends Activity {
         if (text == null || text.trim().isEmpty()) { finish(); return; }
         if (text.length() > 4000) text = text.substring(0, 4000);
         String encoded = Base64.encodeToString(text.getBytes(StandardCharsets.UTF_8), Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
-        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse("https://mohafzatypro.com/app/#incoming=" + encoded));
+        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse(BuildConfig.WEB_BASE_URL + "/app/#incoming=" + encoded));
         open.setClassName(this, "com.google.androidbrowserhelper.trusted.LauncherActivity");
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         try { startActivity(open); } finally { finish(); }

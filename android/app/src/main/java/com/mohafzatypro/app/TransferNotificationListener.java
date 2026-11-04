@@ -40,7 +40,7 @@ public class TransferNotificationListener extends NotificationListenerService {
         if (manager == null) return;
         if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(new NotificationChannel(CHANNEL, "مراجعة التحويلات", NotificationManager.IMPORTANCE_DEFAULT));
         String encoded = Base64.encodeToString(text.getBytes(StandardCharsets.UTF_8), Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
-        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse("https://mohafzatypro.com/app/#incoming=" + encoded));
+        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse(BuildConfig.WEB_BASE_URL + "/app/#incoming=" + encoded));
         open.setClassName(this, "com.google.androidbrowserhelper.trusted.LauncherActivity");
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         int flags = PendingIntent.FLAG_UPDATE_CURRENT;

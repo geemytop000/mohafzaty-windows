@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace "com.mohafzatypro.app"
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.mohafzatypro.app"
         minSdk 23
-        targetSdk 35
+        targetSdk 36
         versionCode = (System.getenv("ANDROID_VERSION_CODE") ?: "1").toInteger()
         versionName = (System.getenv("ANDROID_VERSION_NAME") ?: "1.0.0")
     }

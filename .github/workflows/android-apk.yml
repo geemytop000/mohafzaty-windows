@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android APK and AAB
 
 on:
   push:
@@ -19,6 +19,12 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+
+      - name: Install current Android launcher icon
+        run: |
+          mkdir -p android/app/src/main/res/mipmap-nodpi
+          base64 --decode android/assets/mohafzatypro-icon-192.png.base64 > android/app/src/main/res/mipmap-nodpi/ic_launcher.png
+          test -s android/app/src/main/res/mipmap-nodpi/ic_launcher.png
 
       - name: Check signing secrets
         env:
@@ -44,18 +50,18 @@ jobs:
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           test -x "$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses
-          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Verify Android SDK tools
         run: |
-          test -x "$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          test -x "$ANDROID_HOME/build-tools/36.0.0/apksigner"
           test -x "$ANDROID_HOME/platform-tools/adb"
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --version
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
+          gradle-version: '8.11.1'
 
       - name: Prepare Android signing key
         env:
@@ -64,7 +70,7 @@ jobs:
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/mohafzaty-release.jks"
           test -s "$RUNNER_TEMP/mohafzaty-release.jks"
 
-      - name: Build signed APK
+      - name: Build signed APK and AAB
         working-directory: android
         env:
           ANDROID_VERSION_CODE: ${{ github.run_number }}
@@ -74,18 +80,22 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          gradle --no-daemon clean assembleRelease
+          gradle --no-daemon clean assembleRelease bundleRelease
           cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
+          cp app/build/outputs/bundle/release/app-release.aab "$GITHUB_WORKSPACE/mohafzaty-pro-android.aab"
 
-      - name: Verify APK signature
+      - name: Verify APK and AAB signatures
         run: |
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
+          jarsigner -verify "$GITHUB_WORKSPACE/mohafzaty-pro-android.aab"
 
-      - name: Publish APK release
+      - name: Publish Android release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: android-v1.0.${{ github.run_number }}
           name: محفظتي برو للأندرويد 1.0.${{ github.run_number }}
           make_latest: true
           generate_release_notes: true
-          files: mohafzaty-pro-android.apk
+          files: |
+            mohafzaty-pro-android.apk
+            mohafzaty-pro-android.aab

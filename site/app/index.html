@@ -16,13 +16,23 @@
 <link rel="manifest" href="manifest.webmanifest">
 
 <title>محفظتي برو</title>
+<script>
+  window.__mohafzatyIncomingTransfer = '';
+  (function () {
+    var incoming = String(window.location.hash || '').match(/(?:^#|&)incoming=([^&]+)/);
+    if (incoming) {
+      window.__mohafzatyIncomingTransfer = incoming[1];
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  })();
+</script>
 <!-- Google tag (gtag.js): track the production app only, not preview deployments. -->
 <script>
   if (["mohafzatypro.com", "www.mohafzatypro.com"].includes(window.location.hostname)) {
     window.dataLayer = window.dataLayer || [];
     window.gtag = function(){ window.dataLayer.push(arguments); };
     window.gtag('js', new Date());
-    window.gtag('config', 'G-HTXW8HD2WT');
+    window.gtag('config', 'G-HTXW8HD2WT', { page_location: window.location.origin + window.location.pathname + window.location.search, page_title: 'محفظتي برو' });
 
     var googleAnalyticsScript = document.createElement('script');
     googleAnalyticsScript.async = true;
@@ -446,6 +456,8 @@ body.dark-mode .sec-row { background: #121212!important; border-color: #333!impo
 #app .tab-label{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis}
 #app .tab.on{background:#2F4A39!important;color:#fff!important;border-color:#2F4A39!important;box-shadow:0 3px 10px rgba(47,74,57,.22)}
 #app .tab-mobile-more{display:flex;min-width:0;width:100%}
+#app .tab-review{position:relative;overflow:visible;text-decoration:none}
+#app .review-count{position:absolute;top:-5px;inset-inline-end:-5px;z-index:2;min-width:19px;height:19px;padding:0 4px;display:inline-flex;align-items:center;justify-content:center;border:2px solid var(--paper-raised);border-radius:999px;background:var(--debit);color:#fff;font-family:'JetBrains Mono',Consolas,monospace;font-size:10px;font-weight:700;line-height:1}
 #app .tab-mobile-more.on{background:#2F4A39!important;color:#fff!important;border-color:#2F4A39!important}
 #app .mobile-tabs-more{position:absolute;top:calc(100% + 8px);inset-inline-end:8px;display:grid;grid-template-columns:1fr;gap:7px;width:min(300px,calc(100vw - 32px));max-height:min(70vh,560px);overflow-y:auto;padding:9px;background:rgba(255,255,255,.98);border:1px solid #D9D2BE;border-radius:15px;box-shadow:0 12px 30px rgba(23,38,29,.18);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:810}
 #app .mobile-tabs-more[hidden]{display:none!important}
@@ -505,7 +517,7 @@ function prompt(msg, def) {
 /* =========================================================
    إعدادات المنتج (غيّرها قبل البيع)
 ========================================================= */
-const APP_VERSION = '2.2.2';
+const APP_VERSION = '2.3.0';
 const DEFAULT_CLOUD_HUB = 'https://wallet-ledger-pro-default-rtdb.firebaseio.com';
 function getCloudHubUrl() {
   return (state.settings && state.settings.cloudHubUrl) || DEFAULT_CLOUD_HUB;
@@ -547,6 +559,9 @@ const DEFAULTS = {
   customPasswordsEnabled: false,
   passwords: {},
   showCapitalToCashier: true,
+  transactionLabelStyle: 'merchant',
+  withdrawDisplayName: 'سحب كاش',
+  depositDisplayName: 'إيداع كاش',
   lastBackup: 0
 };
 
@@ -624,7 +639,8 @@ const state = {
   draftPw: { old: '', n1: '', n2: '' },
   draftClose: { drawer: '', phone: '', notes: '' },
   payInput: '',
-  draftSec: { from: 'drawer', to: '', amount: '', notes: '' }
+  draftSec: { from: 'drawer', to: '', amount: '', notes: '' },
+  pendingImports: [], reviewText: '', reviewSource: 'paste', reviewDraft: { amount: '', type: '', walletId: '' }, reviewEditId: '', importingId: ''
 };
 
 const S = () => state.settings;
@@ -645,7 +661,15 @@ function round2(n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
-function typeLabel(id) { return ALL_TYPE_LABELS[id] || id; }
+function merchantTxnLabel(id, detailed) {
+  const style = S().transactionLabelStyle;
+  if (style === 'custom') { if (id === 'سحب') return String(S().withdrawDisplayName || 'سحب كاش'); if (id === 'ايداع') return String(S().depositDisplayName || 'إيداع كاش'); }
+  const classic = style === 'classic';
+  if (id === 'سحب') return classic ? 'سحب' : (detailed ? 'سحب كاش (الكاش يخرج · رصيد الخط يزيد)' : 'سحب كاش');
+  if (id === 'ايداع') return classic ? 'إيداع (تحويل)' : (detailed ? 'إيداع كاش (الكاش يدخل · رصيد الخط يقل)' : 'إيداع كاش');
+  return ALL_TYPE_LABELS[id] || id;
+}
+function typeLabel(id) { return merchantTxnLabel(id, false); }
 function monthKeyOf(d) { return (d || '').slice(0, 7); }
 function currentMonthKey() { return todayStr().slice(0, 7); }
 function monthLabel(mk) {
@@ -679,7 +703,7 @@ function mainTypes() {
   ].concat(sectionTypes());
 }
 function mainTypeOptions() {
-  return mainTypes().filter(t => !t.secId && t.id !== 'فوري').concat((S().sections || []).map(a => ({ id: 'sec:' + a.id, label: a.name })));
+  return mainTypes().filter(t => !t.secId && t.id !== 'فوري').map(t => { if (t.id === 'سحب' || t.id === 'ايداع') t.label = merchantTxnLabel(t.id, true); return t; }).concat((S().sections || []).map(a => ({ id: 'sec:' + a.id, label: a.name })));
 }
 function mainTypeDef(id) {
   if (typeof id === 'string' && id.indexOf('sec:') === 0) {
@@ -1398,6 +1422,8 @@ async function load() {
   const st = await loadJSON(K.settings, {}, isObj);
   state.settings = Object.assign({}, DEFAULTS, st);
   if (!Array.isArray(state.settings.people)) state.settings.people = [];
+  state.pendingImports = readPendingImports();
+  if (new URLSearchParams(location.search).get('section') === 'review') state.tab = 'review';
   const cl = await loadJSON(K.closings, [], Array.isArray);
   state.closings = Array.isArray(cl) ? cl : [];
   const au = await loadJSON(K.audit, [], Array.isArray);
@@ -1421,6 +1447,7 @@ async function load() {
   state.draftLedger.name = '';
   document.title = 'محفظتي برو';
 
+  consumeIncomingTransfer();
   state.loading = false;
   initSnaps();
   render();
@@ -1773,7 +1800,7 @@ async function addMainTxn() {
 
   const name = pickName(d.name), pid = uid();
   const recs = [{
-    id: pid, date: d.date, time: curTimeStr(), at: Date.now(), type: td.base || d.type, name, notes: d.notes.trim(), amount: amt, flow: td.flow,
+    id: pid, date: d.date, time: curTimeStr(), at: Date.now(), type: td.base || d.type, name, notes: d.notes.trim(), amount: amt, flow: td.flow, sourceImportId: state.importingId || undefined,
     drawerDelta: round2(td.drawer * amt), phoneDelta: round2(td.phone * amt), payments: td.fawry ? [] : undefined, walletId: td.phone !== 0 ? wid : undefined,
     acct: td.secId ? { [td.secId]: round2(td.sec * amt) } : undefined, sec: td.secId,
     ref: (d.ref || '').trim() || undefined
@@ -1960,8 +1987,8 @@ function initSetDrafts() {
   const s = S();
   state.draftSet = {
     shopName: s.shopName, people: (s.people || []).join('، '),
-    withdrawRate: String(s.withdrawRate), depositRate: String(s.depositRate), minCommission: String(s.minCommission),
-    limitIn: String(s.limitIn), limitOut: String(s.limitOut), lowCash: String(s.lowCash), lockOnOpen: !!s.lockOnOpen, showCapitalToCashier: s.showCapitalToCashier !== false
+    withdrawRate: String(s.withdrawRate), depositRate: String(s.depositRate), minCommission: String(s.minCommission), withdrawDisplayName: String(s.withdrawDisplayName || 'سحب كاش'), depositDisplayName: String(s.depositDisplayName || 'إيداع كاش'),
+    limitIn: String(s.limitIn), limitOut: String(s.limitOut), lowCash: String(s.lowCash), transactionLabelStyle: s.transactionLabelStyle === 'classic' || s.transactionLabelStyle === 'custom' ? s.transactionLabelStyle : 'merchant', lockOnOpen: !!s.lockOnOpen, showCapitalToCashier: s.showCapitalToCashier !== false
   };
   state.draftOpening = { drawer: String(state.opening.drawer), phone: String(state.opening.phone) };
   state.draftPw = { old: '', n1: '', n2: '' };
@@ -1975,11 +2002,12 @@ async function saveSettings() {
   const vals = { wr: num(d.withdrawRate), dr: num(d.depositRate), mc: num(d.minCommission), li: num(d.limitIn), lo: num(d.limitOut), lc: num(d.lowCash) };
   if (Object.values(vals).some(v => v === null)) return toast('تأكد إن كل الأرقام صحيحة (صفر أو أكبر)');
   if (vals.wr > 100 || vals.dr > 100) return toast('نسبة العمولة لازم تكون بين 0 و 100');
+  if (d.transactionLabelStyle === 'custom' && (!String(d.withdrawDisplayName || '').trim() || !String(d.depositDisplayName || '').trim())) return toast('اكتب التسمية التي تريدها للسحب والإيداع');
   const old = Object.assign({}, state.settings);
   Object.assign(state.settings, {
     shopName: d.shopName.trim() || DEFAULTS.shopName, people,
-    withdrawRate: vals.wr, depositRate: vals.dr, minCommission: vals.mc,
-    limitIn: vals.li, limitOut: vals.lo, lowCash: vals.lc, lockOnOpen: !!d.lockOnOpen, showCapitalToCashier: !!d.showCapitalToCashier
+    withdrawRate: vals.wr, depositRate: vals.dr, minCommission: vals.mc, withdrawDisplayName: String(d.withdrawDisplayName || '').trim() || 'سحب كاش', depositDisplayName: String(d.depositDisplayName || '').trim() || 'إيداع كاش',
+    limitIn: vals.li, limitOut: vals.lo, lowCash: vals.lc, transactionLabelStyle: d.transactionLabelStyle === 'classic' || d.transactionLabelStyle === 'custom' ? d.transactionLabelStyle : 'merchant', lockOnOpen: !!d.lockOnOpen, showCapitalToCashier: !!d.showCapitalToCashier
   });
   if (!(await persist('settings'))) { state.settings = old; return toast('تعذر الحفظ'); }
   document.title = 'محفظتي برو';
@@ -2512,6 +2540,7 @@ function navIcon(name) {
     cust: '<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
     rep: '<path d="M4 19V5m0 14h17"/><path d="m7 15 4-4 3 2 6-7"/>',
     stats: '<path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 6-7"/>',
+    review: '<path d="M8 3h8l4 4v14H4V3z"/><path d="M8 12h8M8 16h5"/><path d="m8 8 1.5 1.5L12 7"/>',
     wallets: '<rect x="3" y="6" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h2"/><path d="M7 6V4a1 1 0 0 1 1-1h10"/>',
     settings: '<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-1.8l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.5-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.5.9l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.8z"/>',
     support: '<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><path d="M4 13h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 1-2zM20 13h-2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-1-2z"/><path d="M16 20c-.8 1-2 1.5-4 1.5"/>',
@@ -2525,14 +2554,14 @@ function tabsHtml() {
   const mainTabs = [
     ['home', 'الرئيسية'],
     ['ops', 'العمليات'],
+    ['review', 'مراجعة التحويلات'],
     ['cust', 'العملاء'],
-    ['rep', 'التقارير'],
-    ['stats', 'الإحصائيات']
+    ['rep', 'التقارير']
   ];
   const menuTabs = [
+    ['stats', 'الإحصائيات'],
     ['cust', 'العملاء', 'compact-only'],
     ['rep', 'التقارير', 'compact-only'],
-    ['stats', 'الإحصائيات', 'compact-only'],
     ['wallets', 'إدارة الخطوط']
   ];
   if (!isCashier) menuTabs.push(['set', 'الإعدادات']);
@@ -2540,6 +2569,11 @@ function tabsHtml() {
   const compactNav = typeof document !== 'undefined' && document.body.classList.contains('nav-scrolled');
   const buttons = mainTabs.map(t => {
     const active = state.tab === t[0];
+    if (t[0] === 'review') {
+      const count = (state.pendingImports || []).length;
+      const badge = count ? '<span class="review-count" aria-label="' + count + ' عملية تحتاج مراجعة">' + (count > 99 ? '99+' : count) + '</span>' : '';
+      return '<a class="tab tab-review' + (active ? ' on' : '') + '" href="/app/?section=review"' + (active ? ' aria-current="page"' : '') + '><span class="tab-icon">' + navIcon(t[0]) + '</span><span class="tab-label">' + t[1] + '</span>' + badge + '</a>';
+    }
     return '<button type="button" class="tab' + (active ? ' on' : '') +
       '" data-act="tab" data-tab="' + t[0] + '"' + (active ? ' aria-current="page"' : '') +
       '><span class="tab-icon">' + navIcon(t[0]) +
@@ -2554,7 +2588,7 @@ function tabsHtml() {
           '</span><span>' + t[1] + '</span></button>';
       }).join('') + '</div>'
     : '<div class="mobile-tabs-more" hidden></div>';
-  const moreActive = ['wallets', 'set', 'support'].includes(state.tab) ||
+  const moreActive = ['wallets', 'set', 'support', 'review'].includes(state.tab) ||
     (compactNav && ['cust', 'rep', 'stats'].includes(state.tab));
   const moreButton = '<button type="button" class="tab tab-mobile-more' +
     ((moreActive || state.mobileMenuOpen) ? ' on' : '') +
@@ -2571,6 +2605,92 @@ function limitBar(label, used, limit) {
   return '<div style="font-size:12.5px">' + label + ': <span class="num">' + fmt(used) + '</span> من <span class="num">' + fmt(limit) + '</span> (' + pct + '%)</div>' +
     '<div class="bar"><i class="' + (pct >= 80 ? 'hi' : '') + '" style="width:' + pct + '%"></i></div>';
 }
+
+function viewReview() {
+  const walletOpts = getWallets().map(w => ({ id: w.id, label: w.label + ' (' + w.phone + ')' }));
+  const pending = state.pendingImports || [];
+  const walletSelect = '<option value="">اختار الخط المستلم / المحوّل منه</option>' + walletOpts.map(w => '<option value="' + esc(w.id) + '"' + (state.reviewDraft.walletId === w.id ? ' selected' : '') + '>' + esc(w.label) + '</option>').join('');
+  const queue = pending.length ? pending.slice().reverse().map(function(p) {
+    const wallet = getWallets().find(w => w.id === p.walletId);
+    return '<div class="card review-item" style="border-inline-start:4px solid var(--brass);"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;"><strong>' + (p.type === 'سحب' || p.type === 'ايداع' ? merchantTxnLabel(p.type, true) : 'حدد نوع العملية واتجاه الفلوس') + '</strong><span class="num">' + (p.amount ? fmt(p.amount) + ' ' + CUR : 'المبلغ غير محدد') + '</span></div><div style="font-size:12px;color:var(--ink-soft);margin:6px 0 10px;">' + esc(wallet ? wallet.label + ' · ' + wallet.phone : 'اختار الخط المستلم / المحوّل منه أولًا') + ' · وصلت ' + esc(curTimeStr(p.createdAt)) + '</div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-save green" data-act="editImport" data-id="' + esc(p.id) + '">تعديل البيانات</button><button class="btn-save green" data-act="confirmImport" data-id="' + esc(p.id) + '">راجع وسجّل العملية</button><button class="btn-save danger" data-act="deleteImport" data-id="' + esc(p.id) + '">حذف</button></div></div>';
+  }).join('') : '<div class="card"><p style="margin:0;color:var(--ink-soft);">مفيش تحويلات معلّقة. الصق نص الرسالة هنا أو فعّل تنبيهات أندرويد.</p></div>';
+  const androidButton = /Android/i.test(navigator.userAgent) ? '<a class="btn-save dark" style="display:block;text-align:center;text-decoration:none;margin-top:8px;" href="mohafzatypro://notifications/access">لمستخدمي APK أندرويد: تفعيل إشعارات التحويل</a><p style="font-size:12px;color:var(--ink-soft);">الإذن يتيح فحص إشعارات التطبيقات على هذا الجهاز محليًا لاكتشاف التحويلات فقط. اضغط تنبيه محفظتي برو لمراجعتها؛ لن تُسجَّل قبل تأكيدك.</p>' : /iPhone|iPad|iPod/i.test(navigator.userAgent) ? '<p style="font-size:12px;color:var(--ink-soft);">على iPhone: انسخ نص رسالة التحويل من تطبيق الرسائل والصقه هنا؛ iOS لا يسمح للتطبيق بقراءة الرسائل تلقائيًا.</p>' : '<p style="font-size:12px;color:var(--ink-soft);">انسخ نص رسالة التحويل أو الصقه هنا لإضافته إلى قائمة المراجعة.</p>';
+  return '<section><div class="card"><h3>مراجعة تحويل من رسالة</h3><p style="margin:0 0 10px;color:var(--ink-soft);font-size:13px;">الصق الرسالة وسيحاول التطبيق استخراج المبلغ ونوع الحركة تلقائيًا. راجع البيانات والخط قبل التسجيل؛ نص الرسالة لا يُحفظ ولا يُزامن.</p><div class="field"><label for="reviewSms">الصق نص رسالة التحويل</label><textarea id="reviewSms" rows="4" data-bind="reviewText" placeholder="الصق الرسالة هنا…" style="width:100%;resize:vertical;">' + esc(state.reviewText) + '</textarea></div><button class="btn-save dark" data-act="parseImport">استخراج المبلغ المقترح</button><div class="field-row" style="margin-top:12px;"><div class="field"><label>المبلغ (راجعه)</label><input type="number" min="0" step="0.01" inputmode="decimal" data-bind="reviewDraft.amount" value="' + esc(state.reviewDraft.amount) + '"></div><div class="field"><label>حركة المحفظة بالنسبة للمحل</label><select data-bind="reviewDraft.type"><option value="">اختار اتجاه الحركة</option><option value="سحب"' + (state.reviewDraft.type === 'سحب' ? ' selected' : '') + '>' + merchantTxnLabel('سحب', true) + '</option><option value="ايداع"' + (state.reviewDraft.type === 'ايداع' ? ' selected' : '') + '>' + merchantTxnLabel('ايداع', true) + '</option></select></div></div><div class="field"><label>الخط المستلم / المحوّل منه</label><select data-bind="reviewDraft.walletId">' + walletSelect + '</select></div><button class="btn-save green" data-act="' + (state.reviewEditId ? 'updateImport' : 'queueImport') + '">' + (state.reviewEditId ? 'حفظ التعديلات' : 'إضافة لقائمة المراجعة') + '</button>' + androidButton + '</div><h3 style="margin:16px 0 8px;">العمليات المعلّقة (' + pending.length + ')</h3>' + queue + '</section>';
+}
+
+function normalizeTransferDigits(text) {
+  return String(text || '').replace(/[٠-٩۰-۹]/g, function(c) { return String('٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹'.indexOf(c) % 10); }).replace(/[٬٫]/g, function(c) { return c === '٬' ? ',' : '.'; });
+}
+function parseTransferNotice(text) {
+  const normalized = normalizeTransferDigits(text);
+  const lower = normalized.toLowerCase();
+  const amountWords = /(مبلغ|بقيمة|بمبلغ|قيمة|قدر|اجمالي|إجمالي|amount|total|sum)/i;
+  const currency = /(?:جنيه(?:اً|ًا)?|ج\.?م\.?|EGP|LE\.?|L\.E\.)/i;
+  const blocked = /(رقم\s*(?:الهاتف|الموبايل|الحساب|المرجع|العملية|التحويل)|مرجع|reference|\bref\b|\bphone\b|\baccount\b)/i;
+  const candidates = [];
+  const re = /\d[\d,]*(?:\.\d{1,2})?/g;
+  let m;
+  while ((m = re.exec(normalized))) {
+    const raw = m[0], digits = raw.replace(/\D/g, ''), value = Number(raw.replace(/,/g, ''));
+    if (!Number.isFinite(value) || value <= 0 || digits.length > 8) continue;
+    const before = normalized.slice(Math.max(0, m.index - 48), m.index);
+    const after = normalized.slice(m.index + raw.length, m.index + raw.length + 20);
+    if (/[\/-]$/.test(before) || /^[\/-]/.test(after)) continue;
+    if (blocked.test(before.slice(-28)) || blocked.test(after.slice(0, 12))) continue;
+    let score = 0;
+    if (currency.test(after.slice(0, 14)) || currency.test(before.slice(-14))) score += 100000;
+    if (amountWords.test(before.slice(-42))) score += 50000;
+    if (/(تحويل|استلام|إيداع|ايداع|خصم|إضافة|اضافة|received|credited|sent|debited)/i.test(before.slice(-48))) score += 5000;
+    candidates.push({ value: value, score: score, index: m.index });
+  }
+  candidates.sort((a, b) => b.score - a.score || a.index - b.index);
+  const amount = candidates.length ? candidates[0].value : 0;
+  let type = '';
+  if (/تم استلام/i.test(lower)) type = 'سحب';
+  else if (/تم تحويل/i.test(lower)) type = 'ايداع';
+  else if (/(استلمت|وصلك|وارد|استقبلت|إضافة رصيد|اضافة رصيد|received|credited|deposit received)/i.test(lower)) type = 'سحب';
+  else if (/(تحويل مبلغ|تم إرسال|تم ارسال|تم إيداع|تم ايداع|إيداع ناجح|ايداع ناجح|خصم|صادر|أرسلت|ارسلت|تم سحب|sent|debited|withdrawn)/i.test(lower)) type = 'ايداع';
+  return { amount: Number.isFinite(amount) && amount > 0 ? round2(amount) : 0, type: type };
+}
+function pendingImportsKey() {
+  let owner = 'local';
+  try { owner = (cloudUser && cloudUser.uid) || localStorage.getItem('wl:uid') || owner; } catch (e) {}
+  return 'wallet:pending-imports:' + PROFILE + ':' + owner;
+}
+function readPendingImports() {
+  try { const x = JSON.parse(localStorage.getItem(pendingImportsKey()) || '[]'); return Array.isArray(x) ? x.filter(p => p && p.id && p.createdAt) : []; } catch (e) { return []; }
+}
+function savePendingImports() {
+  try { localStorage.setItem(pendingImportsKey(), JSON.stringify(state.pendingImports || [])); return true; } catch (e) { toast('تعذر حفظ قائمة المراجعة على هذا الجهاز'); return false; }
+}
+function queueTransferNotice(text, source) {
+  const parsed = parseTransferNotice(text);
+  const fingerprint = String(cyrb53(normalizeTransferDigits(text)));
+  if ((state.pendingImports || []).some(p => p.fingerprint === fingerprint) || state.txns.some(t => t.sourceImportId === fingerprint)) { toast('الرسالة دي اتضافت قبل كده'); return false; }
+  state.reviewText = String(text || ''); state.reviewSource = source || 'paste';
+  state.reviewEditId = '';
+  state.reviewDraft = { amount: parsed.amount ? String(parsed.amount) : '', type: parsed.type, walletId: '' };
+  state.tab = 'review'; state.panel = null; render(); toast('اختار الخط المستلم / المحوّل منه ثم أضف الرسالة لقائمة المراجعة'); return true;
+}
+function consumeIncomingTransfer() {
+  const encoded = window.__mohafzatyIncomingTransfer || '';
+  window.__mohafzatyIncomingTransfer = '';
+  if (!encoded) return;
+  try { const raw = atob(encoded.replace(/-/g, '+').replace(/_/g, '/')); const bytes = Uint8Array.from(raw, c => c.charCodeAt(0)); const text = new TextDecoder().decode(bytes); queueTransferNotice(text, 'android-notification'); } catch (e) {}
+}
+async function confirmImport(id) {
+  const item = (state.pendingImports || []).find(p => p.id === id); if (!item) return;
+  if (!item.type || !item.amount || item.amount <= 0) { editImport(item.id); toast('راجع المبلغ والنوع أولاً'); return; }
+  if (!item.walletId || !getWallets().some(w => w.id === item.walletId)) { editImport(item.id); toast('اختار الخط المستلم قبل تسجيل العملية'); return; }
+  state.importingId = item.fingerprint;
+  state.draftMain = { date: todayStr(), type: item.type, secDir: 'w', name: '', amount: String(item.amount), notes: 'تمت مراجعتها من رسالة تحويل', walletId: item.walletId || '', ref: '' };
+  state.tab = 'home'; state.panel = 'main'; await addMainTxn();
+  const saved = state.txns.some(t => t.sourceImportId === item.fingerprint); state.importingId = '';
+  if (saved) { state.pendingImports = state.pendingImports.filter(p => p.id !== id); savePendingImports(); audit('import_confirmed', 'تأكيد عملية واردة من رسالة | ' + fmt(item.amount) + ' | ' + item.fingerprint); render(); toast('تم تسجيل العملية بعد مراجعتك'); }
+}
+function editImport(id) { const item = (state.pendingImports || []).find(p => p.id === id); if (!item) return; state.reviewEditId = id; state.reviewDraft = { amount: item.amount ? String(item.amount) : '', type: item.type || '', walletId: item.walletId || '' }; state.reviewText = ''; render(); window.scrollTo(0, 0); }
+function updateImport() { const item = (state.pendingImports || []).find(p => p.id === state.reviewEditId); if (!item) { state.reviewEditId = ''; return; } if (!state.reviewDraft.walletId || !getWallets().some(w => w.id === state.reviewDraft.walletId)) return toast('اختار الخط المستلم قبل حفظ المراجعة'); item.amount = round2(parseFloat(state.reviewDraft.amount) || 0); item.type = state.reviewDraft.type || ''; item.walletId = state.reviewDraft.walletId; savePendingImports(); state.reviewEditId = ''; state.reviewDraft = { amount: '', type: '', walletId: '' }; render(); toast('تم حفظ بيانات المراجعة'); }
+function deleteImport(id) { state.pendingImports = (state.pendingImports || []).filter(p => p.id !== id); if (state.reviewEditId === id) state.reviewEditId = ''; savePendingImports(); render(); }
 
 function viewHome() {
   const T = totals();
@@ -2717,7 +2837,7 @@ function viewOps() {
   const opTypes = Object.keys(ALL_TYPE_LABELS).filter(id => id !== 'فوري');
   return '<div class="filters noprint">' +
     '<input class="wide" type="text" id="searchBox" data-bind="filters.search" data-live value="' + esc(f.search) + '" placeholder="بحث بالاسم، الملاحظات، كود المرجع، أو الوقت (مثال 02:30)">' +
-    '<select data-bind="filters.type" data-render><option value="">كل الأنواع</option>' + opTypes.map(id => '<option value="' + id + '"' + (f.type === id ? ' selected' : '') + '>' + ALL_TYPE_LABELS[id] + '</option>').join('') + '</select>' +
+    '<select data-bind="filters.type" data-render><option value="">كل الأنواع</option>' + opTypes.map(id => '<option value="' + id + '"' + (f.type === id ? ' selected' : '') + '>' + typeLabel(id) + '</option>').join('') + '</select>' +
     '<select data-bind="filters.walletId" data-render><option value="">كل الخطوط والمحافظ</option>' + walletOpts + '</select>' +
     '<button class="link" data-act="resetFilters">مسح الفلاتر</button>' +
     '<input type="date" data-bind="filters.from" data-render value="' + esc(f.from) + '" title="من تاريخ">' +
@@ -2918,6 +3038,7 @@ function viewSettings() {
   return '<div class="card"><h3>بيانات المحل والموظفين</h3>' +
     '<div class="field"><label>اسم المحل</label><input type="text" data-bind="draftSet.shopName" value="' + esc(d.shopName) + '"></div>' +
     '<div class="field"><label>أسماء الموظفين (افصل بينهم بفاصلة)</label><input type="text" data-bind="draftSet.people" value="' + esc(d.people) + '"></div>' +
+    '<div class="field"><label>تسمية الإيداع والسحب</label><select data-bind="draftSet.transactionLabelStyle"><option value="merchant"' + (d.transactionLabelStyle === 'merchant' ? ' selected' : '') + '>واضحة للتاجر: سحب كاش / إيداع كاش</option><option value="classic"' + (d.transactionLabelStyle === 'classic' ? ' selected' : '') + '>التسميات المعتادة: سحب / إيداع (تحويل)</option><option value="custom"' + (d.transactionLabelStyle === 'custom' ? ' selected' : '') + '>تسميات أكتبها بنفسي</option></select><div class="field-row"><div class="field"><label>اسم عملية السحب</label><input type="text" data-bind="draftSet.withdrawDisplayName" value="' + esc(d.withdrawDisplayName) + '" placeholder="مثال: صرف نقدي"></div><div class="field"><label>اسم عملية الإيداع</label><input type="text" data-bind="draftSet.depositDisplayName" value="' + esc(d.depositDisplayName) + '" placeholder="مثال: شحن محفظة"></div></div><div class="hint">الأسماء المخصصة تظهر عند اختيار «تسميات أكتبها بنفسي». تتطبق في الرئيسية والمراجعة وسجل العمليات.</div></div>' +
     '<h4 style="margin-top:14px">العمولات والتنبيهات</h4>' +
     '<div class="field-row"><div class="field"><label>عمولة السحب %</label><input type="number" step="0.01" min="0" data-bind="draftSet.withdrawRate" value="' + esc(d.withdrawRate) + '"></div>' +
     '<div class="field"><label>عمولة الإيداع %</label><input type="number" step="0.01" min="0" data-bind="draftSet.depositRate" value="' + esc(d.depositRate) + '"></div></div>' + sectionsSettingsCard() +
@@ -3122,11 +3243,11 @@ function printShiftReport() {
 
 function render() {
   const app = $('app');
-  const sectionTitles = { home: 'محفظتي برو', ops: 'العمليات | محفظتي برو', cust: 'العملاء | محفظتي برو', rep: 'التقارير | محفظتي برو', stats: 'الإحصائيات | محفظتي برو', wallets: 'إدارة الخطوط | محفظتي برو', set: 'الإعدادات | محفظتي برو', support: 'تواصل ودعم | محفظتي برو' };
+  const sectionTitles = { home: 'محفظتي برو', review: 'مراجعة التحويلات | محفظتي برو', ops: 'العمليات | محفظتي برو', cust: 'العملاء | محفظتي برو', rep: 'التقارير | محفظتي برو', stats: 'الإحصائيات | محفظتي برو', wallets: 'إدارة الخطوط | محفظتي برو', set: 'الإعدادات | محفظتي برو', support: 'تواصل ودعم | محفظتي برو' };
   document.title = sectionTitles[state.tab] || 'محفظتي برو';
   if (state.loading) { app.innerHTML = '<div class="boot">جارِ فتح الدفتر…</div>'; return; }
   if (state.locked) { app.innerHTML = lockHtml(); const p = $('lockPw'); if (p) p.focus(); return; }
-  const views = { home: viewHome, wallets: viewWallets, ops: viewOps, cust: viewCust, rep: viewReports, stats: viewStats, set: viewSettings, support: viewContact };
+  const views = { home: viewHome, review: viewReview, wallets: viewWallets, ops: viewOps, cust: viewCust, rep: viewReports, stats: viewStats, set: viewSettings, support: viewContact };
   app.innerHTML = '<div class="wrap">' + headerHtml() + bannersHtml() + tabsHtml() + (views[state.tab] || viewHome)() + '</div>' + detailModalHtml();
   updatePreviews();
 }
@@ -3179,6 +3300,12 @@ function onInput(e) {
   const el = e.target, b = el.dataset && el.dataset.bind;
   if (!b) return;
   setPath(b, el.type === 'checkbox' ? el.checked : el.value);
+  if (el.id === 'reviewSms') state.reviewSource = 'paste';
+  if (el.id === 'reviewSms' && el.value.trim()) {
+    const parsed = parseTransferNotice(el.value);
+    if (parsed.amount) { state.reviewDraft.amount = String(parsed.amount); const amountInput = document.querySelector('#app [data-bind=\"reviewDraft.amount\"]'); if (amountInput) amountInput.value = state.reviewDraft.amount; }
+    if (parsed.type) { state.reviewDraft.type = parsed.type; const typeInput = document.querySelector('#app [data-bind=\"reviewDraft.type\"]'); if (typeInput) typeInput.value = parsed.type; }
+  }
   if (el.dataset.live !== undefined && e.type === 'input') { state.filters.limit = 50; render(); restoreFocus(el.id); return; }
   if (el.dataset.render !== undefined && e.type === 'change') { if (b.startsWith('filters.')) state.filters.limit = 50; render(); return; }
   updatePreviews();
@@ -3192,6 +3319,7 @@ async function goTab(t) {
   }
   if (t === 'set' && !(await requireAuth('الدخول للإعدادات', 'settings'))) return;
   state.tab = t; state.panel = null; state.err = ''; state.mobileMenuOpen = false;
+  if (t !== 'review' && new URLSearchParams(location.search).get('section') === 'review') { const next = new URL(location.href); next.searchParams.delete('section'); history.replaceState(null, '', next.pathname + next.search + next.hash); }
   if (t === 'set') initSetDrafts();
   render(); if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
 }
@@ -3204,6 +3332,12 @@ async function handleClick(e) {
     case 'tab': return goTab(el.dataset.tab);
     case 'mobileMore': state.mobileMenuOpen = !state.mobileMenuOpen; return render();
     case 'panel': state.panel = state.panel === v ? null : v; state.err = ''; return render();
+    case 'parseImport': { const text = state.reviewText || ''; if (!text.trim()) return toast('الصق نص الرسالة الأول'); const parsed = parseTransferNotice(text); state.reviewDraft.amount = parsed.amount ? String(parsed.amount) : ''; state.reviewDraft.type = parsed.type; if (parsed.amount) toast('راجع المبلغ والنوع المقترحين قبل الإضافة'); else toast('ماقدرتش أقرأ المبلغ؛ اكتبه يدويًا'); return render(); }
+    case 'queueImport': { if (!state.reviewDraft.walletId || !getWallets().some(w => w.id === state.reviewDraft.walletId)) return toast('اختار الخط المستلم / المحوّل منه قبل الإضافة'); const amount = round2(parseFloat(state.reviewDraft.amount) || 0); if (amount <= 0) return toast('اكتب مبلغ صحيح'); const text = state.reviewText || ''; const fingerprint = text.trim() ? String(cyrb53(normalizeTransferDigits(text))) : uid(); if ((state.pendingImports || []).some(p => p.fingerprint === fingerprint) || state.txns.some(t => t.sourceImportId === fingerprint)) return toast('الرسالة دي اتضافت قبل كده'); state.pendingImports.push({ id: uid(), fingerprint: fingerprint, amount: amount, type: state.reviewDraft.type || '', walletId: state.reviewDraft.walletId, createdAt: Date.now(), source: state.reviewSource || 'paste' }); state.reviewText = ''; state.reviewSource = 'paste'; state.reviewDraft = { amount: '', type: '', walletId: '' }; savePendingImports(); return render(); }
+    case 'confirmImport': return confirmImport(el.dataset.id);
+    case 'editImport': return editImport(el.dataset.id);
+    case 'updateImport': return updateImport();
+    case 'deleteImport': return deleteImport(el.dataset.id);
     case 'saveMain': el.disabled = true; await addMainTxn(); return;
     case 'saveLedger': el.disabled = true; await addLedgerTxn(); return;
     case 'lflow': state.draftLedger.flow = v; return render();
@@ -3324,7 +3458,7 @@ async function tryUnlock() {
       if (scrolled && nav && spacer) spacer.style.height = Math.ceil(navFlowSpace) + 'px';
       const moreButton = document.querySelector('#app .tab-mobile-more');
       if (moreButton) {
-        const moreActive = ['wallets', 'set', 'support'].includes(state.tab) ||
+        const moreActive = ['wallets', 'set', 'support', 'review'].includes(state.tab) ||
           (scrolled && ['cust', 'rep', 'stats'].includes(state.tab));
         moreButton.classList.toggle('on', moreActive || !!state.mobileMenuOpen);
       }

@@ -6,10 +6,15 @@ android {
     namespace "com.mohafzatypro.app"
     compileSdk 36
 
+    buildFeatures {
+        buildConfig true
+    }
+
     defaultConfig {
         applicationId "com.mohafzatypro.app"
         minSdk 23
         targetSdk 36
+        manifestPlaceholders = [webLaunchUrl: "https://mohafzatypro.com/app/"]
         versionCode = (System.getenv("ANDROID_VERSION_CODE") ?: "1").toInteger()
         versionName = (System.getenv("ANDROID_VERSION_NAME") ?: "1.0.0")
     }
@@ -27,9 +32,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix ".preview"
+            manifestPlaceholders = [webLaunchUrl: "https://codex-transfer-notification.mohafzaty-pro.pages.dev/app/"]
+            buildConfigField "String", "WEB_BASE_URL", "\"https://codex-transfer-notification.mohafzaty-pro.pages.dev\""
+        }
         release {
             minifyEnabled false
             signingConfig signingConfigs.release
+            buildConfigField "String", "WEB_BASE_URL", "\"https://mohafzatypro.com\""
         }
     }
 

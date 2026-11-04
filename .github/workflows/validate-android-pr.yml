@@ -1,0 +1,58 @@
+name: Validate Android app changes
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'android/**'
+      - 'site/.well-known/assetlinks.json'
+      - '.github/workflows/validate-android-pr.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Prepare the launcher icon
+        run: |
+          mkdir -p android/app/src/main/res/mipmap-nodpi
+          base64 --decode android/assets/mohafzatypro-icon-192.png.base64 > android/app/src/main/res/mipmap-nodpi/ic_launcher.png
+          test -s android/app/src/main/res/mipmap-nodpi/ic_launcher.png
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Build Android debug package
+        working-directory: android
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: Upload installable preview APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mohafzaty-pro-preview-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

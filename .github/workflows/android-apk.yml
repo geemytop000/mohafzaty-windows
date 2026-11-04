@@ -26,6 +26,11 @@ jobs:
           mkdir -p android/app/src/main/res/mipmap-nodpi
           base64 --decode android/assets/mohafzatypro-icon-192.png.base64 > android/app/src/main/res/mipmap-nodpi/ic_launcher.png
           test -s android/app/src/main/res/mipmap-nodpi/ic_launcher.png
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+          magick android/app/src/main/res/mipmap-nodpi/ic_launcher.png -strip -alpha on -define png:color-type=6 /tmp/ic_launcher-normalized.png
+          mv /tmp/ic_launcher-normalized.png android/app/src/main/res/mipmap-nodpi/ic_launcher.png
+          file android/app/src/main/res/mipmap-nodpi/ic_launcher.png
 
       - name: Check signing secrets
         env:

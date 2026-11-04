@@ -89,7 +89,7 @@ jobs:
 
       - name: Verify APK and AAB signatures
         run: |
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
           jarsigner -verify "$GITHUB_WORKSPACE/mohafzaty-pro-android.aab"
 
       - name: Publish Android release

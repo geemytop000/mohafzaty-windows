@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mohafzatypro.app",
+      "sha256_cert_fingerprints": [
+        "40:38:C4:56:F0:B9:D9:06:CA:9B:BB:32:6D:62:90:2E:7E:5B:55:23:EF:D5:34:7B:16:95:A1:76:E6:E6:60:2B"
+      ]
+    }
+  }
+]

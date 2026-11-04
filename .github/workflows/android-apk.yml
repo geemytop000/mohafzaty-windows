@@ -31,7 +31,7 @@ jobs:
           from pathlib import Path
           import struct
           icon = Path("android/app/src/main/res/mipmap-nodpi/ic_launcher.png").read_bytes()
-          assert icon[:8] == b"\\x89PNG\\r\\n\\x1a\\n", "Launcher icon is not a valid PNG"
+          assert icon[:8].hex() == "89504e470d0a1a0a", "Launcher icon is not a valid PNG"
           width, height = struct.unpack(">II", icon[16:24])
           assert width == height == 192, f"Expected a 192x192 launcher icon, got {width}x{height}"
           print(f"Validated launcher icon: {width}x{height} PNG")

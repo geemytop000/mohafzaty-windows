@@ -6,6 +6,7 @@ on:
       - wallet-guides-and-article-cta
       - add-ga4-website-analytics
       - track-registration-download-clicks
+      - codex/web-growth-improvements
     paths:
       - 'site/**'
       - '.github/workflows/preview-pages.yml'

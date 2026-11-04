@@ -1,9 +1,52 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<script>
+  // Collect production-site visits only; keep Cloudflare preview traffic out of reports.
+  if (["mohafzatypro.com", "www.mohafzatypro.com"].includes(window.location.hostname)) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){window.dataLayer.push(arguments);};
+    window.gtag('js', new Date());
+    window.gtag('config', 'G-HTXW8HD2WT');
+    document.addEventListener('click', function(event) {
+      var clickedElement = event.target;
+      if (clickedElement && clickedElement.nodeType !== 1) clickedElement = clickedElement.parentElement;
+      var clickedLink = clickedElement && clickedElement.closest ? clickedElement.closest('a[href]') : null;
+      if (!clickedLink) return;
+
+      var destinationUrl;
+      try {
+        destinationUrl = new URL(clickedLink.href, window.location.href);
+      } catch (error) {
+        return;
+      }
+      if (destinationUrl.origin !== window.location.origin) return;
+
+      var eventName = null;
+      if (destinationUrl.pathname === '/register.html' || destinationUrl.pathname === '/register/') {
+        eventName = 'click_start_free';
+      } else if (destinationUrl.pathname === '/download.html' || destinationUrl.pathname === '/download' || destinationUrl.pathname === '/download/') {
+        eventName = 'click_download';
+      }
+      if (!eventName) return;
+
+      window.gtag('event', eventName, {
+        page_path: window.location.pathname,
+        link_text: (clickedLink.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 80),
+        destination_path: destinationUrl.pathname
+      });
+    });
+
+    var googleAnalyticsScript = document.createElement('script');
+    googleAnalyticsScript.async = true;
+    googleAnalyticsScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-HTXW8HD2WT';
+    document.head.appendChild(googleAnalyticsScript);
+  }
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>مميزات محفظتي برو | برنامج حسابات لمحلات الدفع الإلكتروني</title>
+<title>محفظتي برو | مميزات برنامج حسابات المحلات</title>
 <meta name="description" content="اكتشف مميزات محفظتي برو: تسجيل عمليات السحب والإيداع، دفتر العملاء، مراجعة القيود، الإحصائيات، إقفال اليوم، وتصدير Excel والإيصالات. مجاني دون اشتراك.">
 <meta name="theme-color" content="#2f4a39">
 <link rel="canonical" href="https://mohafzatypro.com/features">
@@ -33,7 +76,9 @@
 <body>
 <header class="nav"><div class="wrap">
 <a class="brand" href="/"><img src="/app/icon-transparent-192.png" alt="" width="34" height="34">محفظتي برو</a>
-<nav class="links" aria-label="التنقل الرئيسي"><a class="hide-m" href="/features" aria-current="page">المميزات</a><a class="hide-m" href="/articles/">الأدلة والمقالات</a><a class="hide-m" href="/download.html">تحميل</a><a class="hide-m" href="/login.html">دخول</a><a class="btn sm" href="/register.html">ابدأ مجانًا</a></nav>
+<button class="menu-toggle" id="menuToggle" type="button" aria-label="فتح قائمة التنقل" aria-controls="primaryLinks" aria-expanded="false"><span class="menu-icon" aria-hidden="true"></span></button>
+<nav class="links" id="primaryLinks" aria-label="التنقل الرئيسي"><a class="hide-m" href="/features" aria-current="page">المميزات</a><a class="hide-m" href="/articles/">الأدلة والمقالات</a><a class="hide-m" href="/download.html">تحميل</a><a class="hide-m" href="/login.html">دخول</a><a class="btn sm desktop-start" href="/register.html">ابدأ مجانًا</a></nav>
+<a class="btn sm mobile-start" href="/register.html">ابدأ مجانًا</a>
 </div></header>
 <main class="doc">
 <h1>مميزات محفظتي برو</h1>
@@ -67,4 +112,5 @@
 <p>للتفاصيل العملية، تصفح <a href="/articles/">أدلة الحسابات والمقالات</a>.</p>
 </main>
 <footer><div class="wrap"><div>© محفظتي برو — جميع الحقوق محفوظة</div><div><a href="/features">المميزات</a> · <a href="/articles/">الأدلة والمقالات</a> · <a href="/privacy.html">سياسة الخصوصية</a> · <a href="/terms.html">شروط الاستخدام</a> · <a href="/download.html">تحميل</a></div><div class="footer-contact" aria-label="التواصل والدعم"><strong>تواصل معنا:</strong><a href="https://www.facebook.com/share/14vAuBAnGHx/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">📘</span>Facebook</a><a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=mohafzatypro%40gmail.com" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">✉️</span>mohafzatypro@gmail.com</a><a href="https://wa.me/201555560865" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">💬</span>WhatsApp · 01555560865</a></div></div></footer>
+<script>(function(){var toggle=document.getElementById('menuToggle'),menu=document.getElementById('primaryLinks');if(!toggle||!menu)return;function setOpen(open,restoreFocus){toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'إغلاق قائمة التنقل':'فتح قائمة التنقل');menu.classList.toggle('is-open',open);if(restoreFocus)toggle.focus();}toggle.addEventListener('click',function(){setOpen(toggle.getAttribute('aria-expanded')!=='true');});menu.addEventListener('click',function(event){if(event.target.closest('a'))setOpen(false);});document.addEventListener('keydown',function(event){if(event.key==='Escape'&&toggle.getAttribute('aria-expanded')==='true')setOpen(false,true);});var desktop=window.matchMedia('(min-width: 901px)');desktop.addEventListener('change',function(event){if(event.matches)setOpen(false);});})();</script>
 </body></html>

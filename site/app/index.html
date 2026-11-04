@@ -16,14 +16,21 @@
 <link rel="manifest" href="manifest.webmanifest">
 
 <title>محفظتي برو</title>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HTXW8HD2WT"></script>
+<!-- Google tag (gtag.js): track the production app only, not preview deployments. -->
 <script>
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = function(){ window.dataLayer.push(arguments); };
-  window.gtag('js', new Date());
-  window.gtag('config', 'G-HTXW8HD2WT');
+  if (["mohafzatypro.com", "www.mohafzatypro.com"].includes(window.location.hostname)) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){ window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', 'G-HTXW8HD2WT');
+
+    var googleAnalyticsScript = document.createElement('script');
+    googleAnalyticsScript.async = true;
+    googleAnalyticsScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-HTXW8HD2WT';
+    document.head.appendChild(googleAnalyticsScript);
+  }
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" media="print" onload="this.media='all'">
 <script>
 /* Load Firebase after the HTML parser has progressed so the login screen can paint sooner. */
@@ -3519,6 +3526,7 @@ function showAuthForm(mode, note) {
     '<label for="auPw" style="font-size:13px">كلمة المرور</label><input id="auPw" type="password" style="' + AUTH_IN + ';direction:ltr;text-align:left" autocomplete="' + (reg ? 'new-password' : 'current-password') + '">' +
     '<div id="auMsg" style="min-height:20px;font-size:13px;color:#8C3A2E;margin-bottom:8px">' + (note || '') + '</div>' +
     '<button id="auGo" style="' + AUTH_BTN + '">' + (reg ? 'إنشاء الحساب' : 'دخول') + '</button>' +
+    (reg ? '<div style="font-size:12px;color:#596153;margin-top:8px;text-align:center">مجاني دون اشتراك، ويعمل من المتصفح على الهاتف والكمبيوتر.</div>' : '') +
     (reg ? '<div style="font-size:12px;color:#596153;margin-top:10px;text-align:center">بالتسجيل أنت توافق على <a href="/terms.html" target="_blank" style="color:#2F6F4E">شروط الاستخدام</a> و<a href="/privacy.html" target="_blank" style="color:#2F6F4E">سياسة الخصوصية</a></div>'
           : '<div style="text-align:center;margin-top:12px"><a href="#" id="auForgot" style="font-size:13px;color:#2F6F4E">نسيت كلمة المرور؟</a></div>')
   );

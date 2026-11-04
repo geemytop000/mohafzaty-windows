@@ -2612,11 +2612,16 @@ function parseTransferNotice(text) {
   else if (/(تم إرسال|تم ارسال|خصم|صادر|أرسلت|ارسلت|تم سحب|sent|debited|withdrawn)/i.test(lower)) type = 'ايداع';
   return { amount: Number.isFinite(amount) && amount > 0 ? round2(amount) : 0, type: type };
 }
+function pendingImportsKey() {
+  let owner = 'local';
+  try { owner = (cloudUser && cloudUser.uid) || localStorage.getItem('wl:uid') || owner; } catch (e) {}
+  return 'wallet:pending-imports:' + PROFILE + ':' + owner;
+}
 function readPendingImports() {
-  try { const x = JSON.parse(localStorage.getItem('wallet:pending-imports:' + PROFILE) || '[]'); return Array.isArray(x) ? x.filter(p => p && p.id && p.createdAt) : []; } catch (e) { return []; }
+  try { const x = JSON.parse(localStorage.getItem(pendingImportsKey()) || '[]'); return Array.isArray(x) ? x.filter(p => p && p.id && p.createdAt) : []; } catch (e) { return []; }
 }
 function savePendingImports() {
-  try { localStorage.setItem('wallet:pending-imports:' + PROFILE, JSON.stringify(state.pendingImports || [])); return true; } catch (e) { toast('تعذر حفظ قائمة المراجعة على هذا الجهاز'); return false; }
+  try { localStorage.setItem(pendingImportsKey(), JSON.stringify(state.pendingImports || [])); return true; } catch (e) { toast('تعذر حفظ قائمة المراجعة على هذا الجهاز'); return false; }
 }
 function queueTransferNotice(text, source) {
   const parsed = parseTransferNotice(text);

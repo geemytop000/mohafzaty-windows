@@ -5,7 +5,7 @@ on:
     branches:
       - wallet-guides-and-article-cta
       - add-ga4-website-analytics
-      - track-registration-downloads
+      - track-registration-downloads-clicks
       - codex/web-growth-improvements
       - codex/transfer-notification-review
       - codex/wallet-number-provider-guardrails

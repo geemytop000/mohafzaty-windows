@@ -70,7 +70,7 @@ jobs:
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/mohafzaty-release.jks"
           test -s "$RUNNER_TEMP/mohafzaty-release.jks"
 
-      - name: Build signed APK
+      - name: Build signed APK and AAB
         working-directory: android
         env:
           ANDROID_VERSION_CODE: ${{ github.run_number }}
@@ -84,11 +84,12 @@ jobs:
           cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
           cp app/build/outputs/bundle/release/app-release.aab "$GITHUB_WORKSPACE/mohafzaty-pro-android.aab"
 
-      - name: Verify APK signature
+      - name: Verify APK and AAB signatures
         run: |
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
+          jarsigner -verify "$GITHUB_WORKSPACE/mohafzaty-pro-android.aab"
 
-      - name: Publish APK release
+      - name: Publish Android release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: android-v1.0.${{ github.run_number }}

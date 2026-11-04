@@ -1507,10 +1507,10 @@ const INSTAPAY_BANKS = [
   'البنك التجاري الدولي CIB','البنك المصري الخليجي EGBANK','البنك الأهلي المصري','بنك قطر الوطني الأهلي QNB',
   'بنك الشركة المصرفية العربية الدولية SAIB','بنك تنمية الصادرات المصري','البنك العربي الدولي AIB',
   'بنك فيصل الإسلامي المصري','بنك البركة مصر','بنك التجاري وفا مصر','مصرف أبوظبي الإسلامي مصر',
-  'بنك الكويت الوطني مصر','بنك التعمير والإسكان','البنك المصري الخليجي','بنك قناة السويس','البنك الأهلي الكويتي مصر',
-  'البنك المصري العربي للأراضي','البنك الأهلي المتحد','البنك المتحد','HSBC مصر','مصرف أبوظبي التجاري مصر',
+  'البنك الأهلي الكويتي مصر','بنك التعمير والإسكان','بنك الكويت الوطني مصر','البنك المصري العربي للأراضي',
+  'بنك قناة السويس','البنك الأهلي المتحد','المصرف المتحد','HSBC مصر','مصرف أبوظبي التجاري مصر',
   'بنك أبوظبي الأول مصر','سيتي بنك مصر','كريدي أجريكول مصر','بنك المشرق مصر','الإمارات دبي الوطني مصر',
-  'بنك NXT','بنك المؤسسة العربية المصرفية ABC','MIDBANK','بنك التنمية الصناعية','بنك الزراعي المصري','بنك آخر'
+  'بنك NXT','بنك المؤسسة العربية المصرفية ABC','MIDBANK','بنك التنمية الصناعية','البنك الزراعي المصري','بنك آخر'
 ];
 function walletTypeFields(wallet) {
   const w = wallet || {};
@@ -1666,8 +1666,8 @@ async function addWalletModal() {
     { k: 'dailyLimit', label: 'الحد اليومي بالجنيه (اكتب 0 إذا بدون حد)', type: 'number', value: '60000' },
     { k: 'monthlyLimit', label: 'الحد الشهري بالجنيه (اكتب 0 إذا بدون حد)', type: 'number', value: '200000' }
   );
-  const r = await askModal('إضافة رقم محفظة جديد', fields, 'إضافة');
-  if (!r || !validateWalletDetails(r, '')) return;
+  const r = await askModal('إضافة رقم محفظة جديد', fields, 'إضافة', function(value) { return validateWalletDetails(value, ''); });
+  if (!r) return;
   const ws = S().wallets && S().wallets.length ? S().wallets.slice() : getWallets().slice();
   const wid = 'w_' + Date.now().toString(36);
   ws.push({
@@ -1701,8 +1701,8 @@ async function editWalletModal(wid) {
     { k: 'dailyLimit', label: 'الحد اليومي بالجنيه (0 = بدون حد)', type: 'number', value: w.dailyLimit },
     { k: 'monthlyLimit', label: 'الحد الشهري بالجنيه (0 = بدون حد)', type: 'number', value: w.monthlyLimit }
   );
-  const r = await askModal('تعديل رقم المحفظة', fields, 'حفظ');
-  if (!r || !validateWalletDetails(r, wid)) return;
+  const r = await askModal('تعديل رقم المحفظة', fields, 'حفظ', function(value) { return validateWalletDetails(value, wid); });
+  if (!r) return;
   w.phone = r.phone;
   w.providerType = r.providerType;
   w.customProvider = r.providerType === 'custom' ? r.customProvider.trim() : '';
@@ -3975,7 +3975,7 @@ function sectionBoxes(T) {
     return '<div class="box"><div class="l"><span>' + esc(a.name) + '</span><span><i class="ed" data-act="renSection" data-id="' + a.id + '" title="تعديل الاسم">✏️</i><i class="ed" data-act="delSection" data-id="' + a.id + '" title="حذف">✕</i></span></div><div class="v num">' + fmt(T.acctB[a.id] || 0) + '</div></div>';
   }).join('') + '</div>';
 }
-function askModal(title, fields, ok) {
+function askModal(title, fields, ok, validator) {
   return new Promise(function (resolve) {
     const ov = document.createElement('div');
     ov.dir = 'rtl'; ov.className = 'mdl-ov noprint';
@@ -3985,7 +3985,7 @@ function askModal(title, fields, ok) {
         ? '<select id="mf' + i + '">' + (f.options || '') + '</select>'
         : '<input id="mf' + i + '" type="' + (f.type || 'text') + '" ' + (f.type === 'number' ? 'step="0.01" ' + (f.neg ? '' : 'inputmode="decimal" ') : '') + (f.inputmode ? 'inputmode="' + f.inputmode + '" ' : '') + (f.maxlength ? 'maxlength="' + f.maxlength + '" ' : '') + (f.pattern ? 'pattern="' + f.pattern + '" ' : '') + 'value="' + esc(String(f.value == null ? '' : f.value)) + '">';
       const hidden = f.hiddenUnless ? ' data-wallet-conditional="' + f.hiddenUnless + '" style="display:none"' : '';
-      return '<div class="mdl-field"' + hidden + '><label for="mf' + i + '">' + esc(f.label) + '</label>' + input + '</div>';
+      return '<div class="mdl-field"' + hidden + (f.inputmode === 'numeric' ? ' data-wallet-phone-field="1"' : '') + '><label for="mf' + i + '">' + esc(f.label) + '</label>' + input + '</div>';
     }).join('') + '<div class="mdl-b"><button class="mdl-ok">' + (ok || 'حفظ') + '</button><button class="mdl-x">إلغاء</button></div></div>';
     document.body.appendChild(ov);
     const first = ov.querySelector('input,select');
@@ -4003,8 +4003,20 @@ function askModal(title, fields, ok) {
         if (control) { control.disabled = !visible; control.required = visible; }
       });
     }
-    if (providerSelect) { providerSelect.addEventListener('change', updateWalletConditionalFields); updateWalletConditionalFields(); }
-    const submit = function () { const o = {}; fields.forEach(function (f, i) { o[f.k] = ov.querySelector('#mf' + i).value.trim(); }); done(o); };
+    if (providerSelect) {
+      providerSelect.addEventListener('change', updateWalletConditionalFields);
+      providerSelect.addEventListener('change', function() {
+        const label = ov.querySelector('[data-wallet-phone-field] label');
+        if (label) label.textContent = providerSelect.value === 'instapay' ? 'رقم الموبايل المرتبط بإنستاباي (11 رقم)' : 'رقم الموبايل (11 رقم)';
+      });
+      updateWalletConditionalFields();
+    }
+    const submit = function () {
+      const o = {};
+      fields.forEach(function (f, i) { o[f.k] = ov.querySelector('#mf' + i).value.trim(); });
+      if (validator && validator(o) === false) return;
+      done(o);
+    };
     ov.querySelector('.mdl-ok').onclick = submit;
     ov.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
   });

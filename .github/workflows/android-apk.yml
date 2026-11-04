@@ -28,7 +28,30 @@ jobs:
           test -s android/app/src/main/res/mipmap-nodpi/ic_launcher.png
           sudo apt-get update
           sudo apt-get install -y imagemagick
-          convert android/app/src/main/res/mipmap-nodpi/ic_launcher.png -strip -alpha on PNG32:/tmp/ic_launcher-normalized.png
+          python3 - <<'PY'
+          from pathlib import Path
+          import struct
+          import zlib
+          icon_path = Path("android/app/src/main/res/mipmap-nodpi/ic_launcher.png")
+          data = bytearray(icon_path.read_bytes())
+          assert data[:8].hex() == "89504e470d0a1a0a", "Launcher icon is not a PNG"
+          offset = 8
+          while offset + 12 <= len(data):
+              length = struct.unpack(">I", data[offset:offset + 4])[0]
+              end = offset + 12 + length
+              if end > len(data):
+                  raise ValueError("Truncated PNG chunk")
+              kind = data[offset + 4:offset + 8]
+              crc = zlib.crc32(data[offset + 4:offset + 8 + length]) & 0xffffffff
+              data[offset + 8 + length:end] = struct.pack(">I", crc)
+              offset = end
+              if kind == b"IEND":
+                  break
+          else:
+              raise ValueError("PNG has no IEND chunk")
+          icon_path.write_bytes(data)
+          PY
+          magick android/app/src/main/res/mipmap-nodpi/ic_launcher.png -strip -alpha on -define png:color-type=6 PNG32:/tmp/ic_launcher-normalized.png
           mv /tmp/ic_launcher-normalized.png android/app/src/main/res/mipmap-nodpi/ic_launcher.png
           file android/app/src/main/res/mipmap-nodpi/ic_launcher.png
 

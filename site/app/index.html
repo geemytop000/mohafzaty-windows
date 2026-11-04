@@ -559,6 +559,7 @@ const DEFAULTS = {
   customPasswordsEnabled: false,
   passwords: {},
   showCapitalToCashier: true,
+  transactionLabelStyle: 'merchant',
   lastBackup: 0
 };
 
@@ -658,7 +659,13 @@ function round2(n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
-function typeLabel(id) { return ALL_TYPE_LABELS[id] || id; }
+function merchantTxnLabel(id, detailed) {
+  const classic = S().transactionLabelStyle === 'classic';
+  if (id === 'سحب') return classic ? 'سحب' : (detailed ? 'سحب كاش (الكاش يخرج · رصيد الخط يزيد)' : 'سحب كاش');
+  if (id === 'ايداع') return classic ? 'إيداع (تحويل)' : (detailed ? 'إيداع كاش (الكاش يدخل · رصيد الخط يقل)' : 'إيداع كاش');
+  return ALL_TYPE_LABELS[id] || id;
+}
+function typeLabel(id) { return merchantTxnLabel(id, false); }
 function monthKeyOf(d) { return (d || '').slice(0, 7); }
 function currentMonthKey() { return todayStr().slice(0, 7); }
 function monthLabel(mk) {
@@ -692,7 +699,7 @@ function mainTypes() {
   ].concat(sectionTypes());
 }
 function mainTypeOptions() {
-  return mainTypes().filter(t => !t.secId && t.id !== 'فوري').map(t => { if (t.id === 'سحب') t.label = 'سحب نقدي (الكاش يخرج · رصيد الخط يزيد)'; if (t.id === 'ايداع') t.label = 'إيداع (الكاش يدخل · رصيد الخط يقل)'; return t; }).concat((S().sections || []).map(a => ({ id: 'sec:' + a.id, label: a.name })));
+  return mainTypes().filter(t => !t.secId && t.id !== 'فوري').map(t => { if (t.id === 'سحب' || t.id === 'ايداع') t.label = merchantTxnLabel(t.id, true); return t; }).concat((S().sections || []).map(a => ({ id: 'sec:' + a.id, label: a.name })));
 }
 function mainTypeDef(id) {
   if (typeof id === 'string' && id.indexOf('sec:') === 0) {
@@ -1977,7 +1984,7 @@ function initSetDrafts() {
   state.draftSet = {
     shopName: s.shopName, people: (s.people || []).join('، '),
     withdrawRate: String(s.withdrawRate), depositRate: String(s.depositRate), minCommission: String(s.minCommission),
-    limitIn: String(s.limitIn), limitOut: String(s.limitOut), lowCash: String(s.lowCash), lockOnOpen: !!s.lockOnOpen, showCapitalToCashier: s.showCapitalToCashier !== false
+    limitIn: String(s.limitIn), limitOut: String(s.limitOut), lowCash: String(s.lowCash), transactionLabelStyle: s.transactionLabelStyle === 'classic' ? 'classic' : 'merchant', lockOnOpen: !!s.lockOnOpen, showCapitalToCashier: s.showCapitalToCashier !== false
   };
   state.draftOpening = { drawer: String(state.opening.drawer), phone: String(state.opening.phone) };
   state.draftPw = { old: '', n1: '', n2: '' };
@@ -1995,7 +2002,7 @@ async function saveSettings() {
   Object.assign(state.settings, {
     shopName: d.shopName.trim() || DEFAULTS.shopName, people,
     withdrawRate: vals.wr, depositRate: vals.dr, minCommission: vals.mc,
-    limitIn: vals.li, limitOut: vals.lo, lowCash: vals.lc, lockOnOpen: !!d.lockOnOpen, showCapitalToCashier: !!d.showCapitalToCashier
+    limitIn: vals.li, limitOut: vals.lo, lowCash: vals.lc, transactionLabelStyle: d.transactionLabelStyle === 'classic' ? 'classic' : 'merchant', lockOnOpen: !!d.lockOnOpen, showCapitalToCashier: !!d.showCapitalToCashier
   });
   if (!(await persist('settings'))) { state.settings = old; return toast('تعذر الحفظ'); }
   document.title = 'محفظتي برو';
@@ -2600,10 +2607,10 @@ function viewReview() {
   const walletSelect = '<option value="">اختار الخط المستلم</option>' + walletOpts.map(w => '<option value="' + esc(w.id) + '"' + (state.reviewDraft.walletId === w.id ? ' selected' : '') + '>' + esc(w.label) + '</option>').join('');
   const queue = pending.length ? pending.slice().reverse().map(function(p) {
     const wallet = getWallets().find(w => w.id === p.walletId);
-    return '<div class="card review-item" style="border-inline-start:4px solid var(--brass);"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;"><strong>' + (p.type === 'سحب' ? 'سحب نقدي: الكاش يخرج من الدرج ورصيد الخط يزيد' : p.type === 'ايداع' ? 'إيداع: الكاش يدخل الدرج ورصيد الخط يقل' : 'حدد نوع العملية واتجاه الفلوس') + '</strong><span class="num">' + (p.amount ? fmt(p.amount) + ' ' + CUR : 'المبلغ غير محدد') + '</span></div><div style="font-size:12px;color:var(--ink-soft);margin:6px 0 10px;">' + esc(wallet ? wallet.label + ' · ' + wallet.phone : 'اختر الخط المستلم من شاشة العملية') + ' · وصلت ' + esc(curTimeStr(p.createdAt)) + '</div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-save green" data-act="editImport" data-id="' + esc(p.id) + '">تعديل البيانات</button><button class="btn-save green" data-act="confirmImport" data-id="' + esc(p.id) + '">راجع وسجّل العملية</button><button class="btn-save danger" data-act="deleteImport" data-id="' + esc(p.id) + '">حذف</button></div></div>';
+    return '<div class="card review-item" style="border-inline-start:4px solid var(--brass);"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;"><strong>' + (p.type === 'سحب' || p.type === 'ايداع' ? merchantTxnLabel(p.type, true) : 'حدد نوع العملية واتجاه الفلوس') + '</strong><span class="num">' + (p.amount ? fmt(p.amount) + ' ' + CUR : 'المبلغ غير محدد') + '</span></div><div style="font-size:12px;color:var(--ink-soft);margin:6px 0 10px;">' + esc(wallet ? wallet.label + ' · ' + wallet.phone : 'اختر الخط المستلم من شاشة العملية') + ' · وصلت ' + esc(curTimeStr(p.createdAt)) + '</div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-save green" data-act="editImport" data-id="' + esc(p.id) + '">تعديل البيانات</button><button class="btn-save green" data-act="confirmImport" data-id="' + esc(p.id) + '">راجع وسجّل العملية</button><button class="btn-save danger" data-act="deleteImport" data-id="' + esc(p.id) + '">حذف</button></div></div>';
   }).join('') : '<div class="card"><p style="margin:0;color:var(--ink-soft);">مفيش تحويلات معلّقة. الصق نص الرسالة هنا أو فعّل تنبيهات أندرويد.</p></div>';
   const androidButton = /Android/i.test(navigator.userAgent) ? '<a class="btn-save dark" style="display:block;text-align:center;text-decoration:none;margin-top:8px;" href="mohafzatypro://notifications/access">لمستخدمي APK أندرويد: تفعيل إشعارات التحويل</a><p style="font-size:12px;color:var(--ink-soft);">الإذن يتيح فحص إشعارات التطبيقات على هذا الجهاز محليًا لاكتشاف التحويلات فقط. اضغط تنبيه محفظتي برو لمراجعتها؛ لن تُسجَّل قبل تأكيدك.</p>' : /iPhone|iPad|iPod/i.test(navigator.userAgent) ? '<p style="font-size:12px;color:var(--ink-soft);">على iPhone: انسخ نص رسالة التحويل من تطبيق الرسائل والصقه هنا؛ iOS لا يسمح للتطبيق بقراءة الرسائل تلقائيًا.</p>' : '<p style="font-size:12px;color:var(--ink-soft);">انسخ نص رسالة التحويل أو الصقه هنا لإضافته إلى قائمة المراجعة.</p>';
-  return '<section><div class="card"><h3>مراجعة تحويل من رسالة</h3><p style="margin:0 0 10px;color:var(--ink-soft);font-size:13px;">الصق الرسالة وسيحاول التطبيق استخراج المبلغ ونوع الحركة تلقائيًا. راجع البيانات والخط قبل التسجيل؛ نص الرسالة لا يُحفظ ولا يُزامن.</p><div class="field"><label for="reviewSms">الصق نص رسالة التحويل</label><textarea id="reviewSms" rows="4" data-bind="reviewText" placeholder="الصق الرسالة هنا…" style="width:100%;resize:vertical;">' + esc(state.reviewText) + '</textarea></div><button class="btn-save dark" data-act="parseImport">استخراج المبلغ المقترح</button><div class="field-row" style="margin-top:12px;"><div class="field"><label>المبلغ (راجعه)</label><input type="number" min="0" step="0.01" inputmode="decimal" data-bind="reviewDraft.amount" value="' + esc(state.reviewDraft.amount) + '"></div><div class="field"><label>حركة المحفظة بالنسبة للمحل</label><select data-bind="reviewDraft.type"><option value="">اختار اتجاه الحركة</option><option value="سحب"' + (state.reviewDraft.type === 'سحب' ? ' selected' : '') + '>سحب نقدي: الكاش يخرج · رصيد الخط يزيد</option><option value="ايداع"' + (state.reviewDraft.type === 'ايداع' ? ' selected' : '') + '>إيداع: الكاش يدخل · رصيد الخط يقل</option></select></div></div><div class="field"><label>الخط المستلم</label><select data-bind="reviewDraft.walletId">' + walletSelect + '</select></div><button class="btn-save green" data-act="' + (state.reviewEditId ? 'updateImport' : 'queueImport') + '">' + (state.reviewEditId ? 'حفظ التعديلات' : 'إضافة لقائمة المراجعة') + '</button>' + androidButton + '</div><h3 style="margin:16px 0 8px;">العمليات المعلّقة (' + pending.length + ')</h3>' + queue + '</section>';
+  return '<section><div class="card"><h3>مراجعة تحويل من رسالة</h3><p style="margin:0 0 10px;color:var(--ink-soft);font-size:13px;">الصق الرسالة وسيحاول التطبيق استخراج المبلغ ونوع الحركة تلقائيًا. راجع البيانات والخط قبل التسجيل؛ نص الرسالة لا يُحفظ ولا يُزامن.</p><div class="field"><label for="reviewSms">الصق نص رسالة التحويل</label><textarea id="reviewSms" rows="4" data-bind="reviewText" placeholder="الصق الرسالة هنا…" style="width:100%;resize:vertical;">' + esc(state.reviewText) + '</textarea></div><button class="btn-save dark" data-act="parseImport">استخراج المبلغ المقترح</button><div class="field-row" style="margin-top:12px;"><div class="field"><label>المبلغ (راجعه)</label><input type="number" min="0" step="0.01" inputmode="decimal" data-bind="reviewDraft.amount" value="' + esc(state.reviewDraft.amount) + '"></div><div class="field"><label>حركة المحفظة بالنسبة للمحل</label><select data-bind="reviewDraft.type"><option value="">اختار اتجاه الحركة</option><option value="سحب"' + (state.reviewDraft.type === 'سحب' ? ' selected' : '') + '>' + merchantTxnLabel('سحب', true) + '</option><option value="ايداع"' + (state.reviewDraft.type === 'ايداع' ? ' selected' : '') + '>' + merchantTxnLabel('ايداع', true) + '</option></select></div></div><div class="field"><label>الخط المستلم</label><select data-bind="reviewDraft.walletId">' + walletSelect + '</select></div><button class="btn-save green" data-act="' + (state.reviewEditId ? 'updateImport' : 'queueImport') + '">' + (state.reviewEditId ? 'حفظ التعديلات' : 'إضافة لقائمة المراجعة') + '</button>' + androidButton + '</div><h3 style="margin:16px 0 8px;">العمليات المعلّقة (' + pending.length + ')</h3>' + queue + '</section>';
 }
 
 function normalizeTransferDigits(text) {
@@ -2823,7 +2830,7 @@ function viewOps() {
   const opTypes = Object.keys(ALL_TYPE_LABELS).filter(id => id !== 'فوري');
   return '<div class="filters noprint">' +
     '<input class="wide" type="text" id="searchBox" data-bind="filters.search" data-live value="' + esc(f.search) + '" placeholder="بحث بالاسم، الملاحظات، كود المرجع، أو الوقت (مثال 02:30)">' +
-    '<select data-bind="filters.type" data-render><option value="">كل الأنواع</option>' + opTypes.map(id => '<option value="' + id + '"' + (f.type === id ? ' selected' : '') + '>' + ALL_TYPE_LABELS[id] + '</option>').join('') + '</select>' +
+    '<select data-bind="filters.type" data-render><option value="">كل الأنواع</option>' + opTypes.map(id => '<option value="' + id + '"' + (f.type === id ? ' selected' : '') + '>' + typeLabel(id) + '</option>').join('') + '</select>' +
     '<select data-bind="filters.walletId" data-render><option value="">كل الخطوط والمحافظ</option>' + walletOpts + '</select>' +
     '<button class="link" data-act="resetFilters">مسح الفلاتر</button>' +
     '<input type="date" data-bind="filters.from" data-render value="' + esc(f.from) + '" title="من تاريخ">' +
@@ -3024,6 +3031,7 @@ function viewSettings() {
   return '<div class="card"><h3>بيانات المحل والموظفين</h3>' +
     '<div class="field"><label>اسم المحل</label><input type="text" data-bind="draftSet.shopName" value="' + esc(d.shopName) + '"></div>' +
     '<div class="field"><label>أسماء الموظفين (افصل بينهم بفاصلة)</label><input type="text" data-bind="draftSet.people" value="' + esc(d.people) + '"></div>' +
+    '<div class="field"><label>تسمية الإيداع والسحب</label><select data-bind="draftSet.transactionLabelStyle"><option value="merchant"' + (d.transactionLabelStyle !== 'classic' ? ' selected' : '') + '>واضحة للتاجر: سحب كاش / إيداع كاش</option><option value="classic"' + (d.transactionLabelStyle === 'classic' ? ' selected' : '') + '>التسميات المعتادة: سحب / إيداع (تحويل)</option></select><div class="hint">تتطبق في الرئيسية والمراجعة والعمليات، وتقدر تغيّرها في أي وقت.</div></div>' +
     '<h4 style="margin-top:14px">العمولات والتنبيهات</h4>' +
     '<div class="field-row"><div class="field"><label>عمولة السحب %</label><input type="number" step="0.01" min="0" data-bind="draftSet.withdrawRate" value="' + esc(d.withdrawRate) + '"></div>' +
     '<div class="field"><label>عمولة الإيداع %</label><input type="number" step="0.01" min="0" data-bind="draftSet.depositRate" value="' + esc(d.depositRate) + '"></div></div>' + sectionsSettingsCard() +

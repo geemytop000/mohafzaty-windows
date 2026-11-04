@@ -36,7 +36,7 @@ public class NotificationAccessActivity extends Activity {
     }
 
     private boolean hasListenerAccess() {
-        String enabled = Settings.Secure.getString(getContentResolver(), Settings.Secure.ENABLED_NOTIFICATION_LISTENERS);
+        String enabled = Settings.Secure.getString(getContentResolver(), "enabled_notification_listeners");
         String component = new ComponentName(this, TransferNotificationListener.class).flattenToString();
         return enabled != null && (":" + enabled + ":").contains(":" + component + ":");
     }

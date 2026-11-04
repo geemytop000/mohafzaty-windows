@@ -182,3 +182,12 @@ footer a{color:#515154;text-decoration:none}footer a:hover{color:var(--blue)}
 @media(max-width:900px){
  body:has(.article-mobile-cta) footer{padding-bottom:calc(94px + env(safe-area-inset-bottom))}
 }
+
+
+.article-toc{margin:22px 0 30px;padding:14px 18px;border:1px solid var(--line);border-radius:16px;background:#f7faff}
+.article-toc summary{cursor:pointer;color:var(--dark);font-weight:700}
+.article-toc summary:focus-visible,.article-toc a:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:4px}
+.article-toc ol{margin:12px 0 0;padding-inline-start:24px}
+.article-toc li{margin:6px 0}
+.article-toc a{text-decoration:none}
+.article-main h2[id]{scroll-margin-top:84px}

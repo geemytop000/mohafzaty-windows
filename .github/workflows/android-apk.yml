@@ -26,11 +26,16 @@ jobs:
           mkdir -p android/app/src/main/res/mipmap-nodpi
           base64 --decode android/assets/mohafzatypro-icon-192.png.base64 > android/app/src/main/res/mipmap-nodpi/ic_launcher.png
           test -s android/app/src/main/res/mipmap-nodpi/ic_launcher.png
-          sudo apt-get update
-          sudo apt-get install -y imagemagick
-          magick android/app/src/main/res/mipmap-nodpi/ic_launcher.png -strip -alpha on -define png:color-type=6 /tmp/ic_launcher-normalized.png
-          mv /tmp/ic_launcher-normalized.png android/app/src/main/res/mipmap-nodpi/ic_launcher.png
           file android/app/src/main/res/mipmap-nodpi/ic_launcher.png
+          python3 - <<'PY'
+          from pathlib import Path
+          import struct
+          icon = Path("android/app/src/main/res/mipmap-nodpi/ic_launcher.png").read_bytes()
+          assert icon[:8] == b"\\x89PNG\\r\\n\\x1a\\n", "Launcher icon is not a valid PNG"
+          width, height = struct.unpack(">II", icon[16:24])
+          assert width == height == 192, f"Expected a 192x192 launcher icon, got {width}x{height}"
+          print(f"Validated launcher icon: {width}x{height} PNG")
+          PY
 
       - name: Check signing secrets
         env:

@@ -5,9 +5,10 @@ on:
     branches:
       - wallet-guides-and-article-cta
       - add-ga4-website-analytics
-      - track-registration-download-clicks
+      - track-registration-downloads
       - codex/web-growth-improvements
       - codex/transfer-notification-review
+      - codex/wallet-number-provider-guardrails
     paths:
       - 'site/**'
       - '.github/workflows/preview-pages.yml'

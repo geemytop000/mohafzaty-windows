@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -30,8 +31,8 @@ public class NotificationAccessActivity extends Activity {
         if (hasListenerAccess()) {
             requestNotificationPermissionOrFinish();
         } else {
-            Toast.makeText(this, "فعّل محفظتي برو من قائمة الوصول للإشعارات ثم ارجع للتطبيق", Toast.LENGTH_LONG).show();
-            finish();
+            Toast.makeText(this, "لم يتم تفعيل وصول الإشعارات بعد", Toast.LENGTH_LONG).show();
+            returnToApp();
         }
     }
 
@@ -47,8 +48,8 @@ public class NotificationAccessActivity extends Activity {
             startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
         } catch (Exception error) {
             waitingForListenerSettings = false;
-            Toast.makeText(this, "افتح إعدادات أندرويد ثم الوصول للإشعارات وفعّل محفظتي برو", Toast.LENGTH_LONG).show();
-            finish();
+            Toast.makeText(this, "افتح إعدادات أندرويد ثم الوصول إلى الإشعارات وفعّل محفظتي برو", Toast.LENGTH_LONG).show();
+            returnToApp();
         }
     }
 
@@ -56,19 +57,30 @@ public class NotificationAccessActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS }, REQUEST_NOTIFICATIONS);
         } else {
-            Toast.makeText(this, "تم تفعيل وصول محفظتي برو للإشعارات", Toast.LENGTH_SHORT).show();
-            finish();
+            returnToApp();
         }
+    }
+
+    private void returnToApp() {
+        boolean listenerEnabled = hasListenerAccess();
+        boolean appNotificationsEnabled = Build.VERSION.SDK_INT < 33
+                || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        String url = BuildConfig.WEB_BASE_URL + "/app/?section=review"
+                + "&notificationAccess=" + (listenerEnabled ? "on" : "off")
+                + "&appNotifications=" + (appNotificationsEnabled ? "on" : "off");
+        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        open.setClassName(this, "com.google.androidbrowserhelper.trusted.LauncherActivity");
+        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        try {
+            startActivity(open);
+        } catch (Exception error) {
+            Toast.makeText(this, "ارجع لمحفظتي برو لمراجعة حالة الإشعارات", Toast.LENGTH_LONG).show();
+        }
+        finish();
     }
 
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode != REQUEST_NOTIFICATIONS) return;
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "تم تفعيل التنبيهات", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "وصول الإشعارات مفعّل، لكن اسمح لمحفظتي برو بعرض التنبيهات لتصلك المراجعات", Toast.LENGTH_LONG).show();
-        }
-        finish();
+        if (requestCode == REQUEST_NOTIFICATIONS) returnToApp();
     }
 }

@@ -1,3 +1,4 @@
+# Trigger a fresh signed Android release build after the API 36/AAB setup.
 name: Build Android APK and AAB
 
 on:

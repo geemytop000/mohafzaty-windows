@@ -560,6 +560,8 @@ const DEFAULTS = {
   passwords: {},
   showCapitalToCashier: true,
   transactionLabelStyle: 'merchant',
+  withdrawDisplayName: 'سحب كاش',
+  depositDisplayName: 'إيداع كاش',
   lastBackup: 0
 };
 
@@ -660,7 +662,9 @@ function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 function merchantTxnLabel(id, detailed) {
-  const classic = S().transactionLabelStyle === 'classic';
+  const style = S().transactionLabelStyle;
+  if (style === 'custom') { if (id === 'سحب') return String(S().withdrawDisplayName || 'سحب كاش'); if (id === 'ايداع') return String(S().depositDisplayName || 'إيداع كاش'); }
+  const classic = style === 'classic';
   if (id === 'سحب') return classic ? 'سحب' : (detailed ? 'سحب كاش (الكاش يخرج · رصيد الخط يزيد)' : 'سحب كاش');
   if (id === 'ايداع') return classic ? 'إيداع (تحويل)' : (detailed ? 'إيداع كاش (الكاش يدخل · رصيد الخط يقل)' : 'إيداع كاش');
   return ALL_TYPE_LABELS[id] || id;
@@ -1983,8 +1987,8 @@ function initSetDrafts() {
   const s = S();
   state.draftSet = {
     shopName: s.shopName, people: (s.people || []).join('، '),
-    withdrawRate: String(s.withdrawRate), depositRate: String(s.depositRate), minCommission: String(s.minCommission),
-    limitIn: String(s.limitIn), limitOut: String(s.limitOut), lowCash: String(s.lowCash), transactionLabelStyle: s.transactionLabelStyle === 'classic' ? 'classic' : 'merchant', lockOnOpen: !!s.lockOnOpen, showCapitalToCashier: s.showCapitalToCashier !== false
+    withdrawRate: String(s.withdrawRate), depositRate: String(s.depositRate), minCommission: String(s.minCommission), withdrawDisplayName: String(s.withdrawDisplayName || 'سحب كاش'), depositDisplayName: String(s.depositDisplayName || 'إيداع كاش'),
+    limitIn: String(s.limitIn), limitOut: String(s.limitOut), lowCash: String(s.lowCash), transactionLabelStyle: s.transactionLabelStyle === 'classic' || s.transactionLabelStyle === 'custom' ? s.transactionLabelStyle : 'merchant', lockOnOpen: !!s.lockOnOpen, showCapitalToCashier: s.showCapitalToCashier !== false
   };
   state.draftOpening = { drawer: String(state.opening.drawer), phone: String(state.opening.phone) };
   state.draftPw = { old: '', n1: '', n2: '' };
@@ -1998,11 +2002,12 @@ async function saveSettings() {
   const vals = { wr: num(d.withdrawRate), dr: num(d.depositRate), mc: num(d.minCommission), li: num(d.limitIn), lo: num(d.limitOut), lc: num(d.lowCash) };
   if (Object.values(vals).some(v => v === null)) return toast('تأكد إن كل الأرقام صحيحة (صفر أو أكبر)');
   if (vals.wr > 100 || vals.dr > 100) return toast('نسبة العمولة لازم تكون بين 0 و 100');
+  if (d.transactionLabelStyle === 'custom' && (!String(d.withdrawDisplayName || '').trim() || !String(d.depositDisplayName || '').trim())) return toast('اكتب التسمية التي تريدها للسحب والإيداع');
   const old = Object.assign({}, state.settings);
   Object.assign(state.settings, {
     shopName: d.shopName.trim() || DEFAULTS.shopName, people,
-    withdrawRate: vals.wr, depositRate: vals.dr, minCommission: vals.mc,
-    limitIn: vals.li, limitOut: vals.lo, lowCash: vals.lc, transactionLabelStyle: d.transactionLabelStyle === 'classic' ? 'classic' : 'merchant', lockOnOpen: !!d.lockOnOpen, showCapitalToCashier: !!d.showCapitalToCashier
+    withdrawRate: vals.wr, depositRate: vals.dr, minCommission: vals.mc, withdrawDisplayName: String(d.withdrawDisplayName || '').trim() || 'سحب كاش', depositDisplayName: String(d.depositDisplayName || '').trim() || 'إيداع كاش',
+    limitIn: vals.li, limitOut: vals.lo, lowCash: vals.lc, transactionLabelStyle: d.transactionLabelStyle === 'classic' || d.transactionLabelStyle === 'custom' ? d.transactionLabelStyle : 'merchant', lockOnOpen: !!d.lockOnOpen, showCapitalToCashier: !!d.showCapitalToCashier
   });
   if (!(await persist('settings'))) { state.settings = old; return toast('تعذر الحفظ'); }
   document.title = 'محفظتي برو';
@@ -2641,8 +2646,10 @@ function parseTransferNotice(text) {
   candidates.sort((a, b) => b.score - a.score || a.index - b.index);
   const amount = candidates.length ? candidates[0].value : 0;
   let type = '';
-  if (/(تم استلام|استلمت|وصلك|وارد|استقبلت|إضافة رصيد|اضافة رصيد|received|credited|deposit received)/i.test(lower)) type = 'سحب';
-  else if (/(تم إرسال|تم ارسال|تم إيداع|تم ايداع|إيداع ناجح|ايداع ناجح|خصم|صادر|أرسلت|ارسلت|تم سحب|sent|debited|withdrawn)/i.test(lower)) type = 'ايداع';
+  if (/تم استلام/i.test(lower)) type = 'سحب';
+  else if (/تم تحويل/i.test(lower)) type = 'ايداع';
+  else if (/(استلمت|وصلك|وارد|استقبلت|إضافة رصيد|اضافة رصيد|received|credited|deposit received)/i.test(lower)) type = 'سحب';
+  else if (/(تحويل مبلغ|تم إرسال|تم ارسال|تم إيداع|تم ايداع|إيداع ناجح|ايداع ناجح|خصم|صادر|أرسلت|ارسلت|تم سحب|sent|debited|withdrawn)/i.test(lower)) type = 'ايداع';
   return { amount: Number.isFinite(amount) && amount > 0 ? round2(amount) : 0, type: type };
 }
 function pendingImportsKey() {
@@ -2660,10 +2667,10 @@ function queueTransferNotice(text, source) {
   const parsed = parseTransferNotice(text);
   state.reviewText = '';
   state.reviewEditId = '';
-  state.reviewDraft = { amount: parsed.amount ? String(parsed.amount) : '', type: parsed.type, walletId: getActiveWalletId() || '' };
+  state.reviewDraft = { amount: parsed.amount ? String(parsed.amount) : '', type: parsed.type, walletId: '' };
   const fingerprint = String(cyrb53(normalizeTransferDigits(text)));
   if ((state.pendingImports || []).some(p => p.fingerprint === fingerprint) || state.txns.some(t => t.sourceImportId === fingerprint)) { toast('الرسالة دي اتضافت قبل كده'); return false; }
-  state.pendingImports.push({ id: uid(), fingerprint: fingerprint, amount: parsed.amount, type: parsed.type, walletId: getActiveWalletId() || '', createdAt: Date.now(), source: source || 'paste' });
+  state.pendingImports.push({ id: uid(), fingerprint: fingerprint, amount: parsed.amount, type: parsed.type, walletId: '', createdAt: Date.now(), source: source || 'paste' });
   savePendingImports(); state.tab = 'review'; state.panel = null; render(); toast(parsed.amount ? 'اتضافت للمراجعة — راجع البيانات قبل التسجيل' : 'اتضافت للمراجعة — اكتب المبلغ والنوع يدويًا'); return true;
 }
 function consumeIncomingTransfer() {
@@ -2675,14 +2682,15 @@ function consumeIncomingTransfer() {
 async function confirmImport(id) {
   const item = (state.pendingImports || []).find(p => p.id === id); if (!item) return;
   if (!item.type || !item.amount || item.amount <= 0) { editImport(item.id); toast('راجع المبلغ والنوع أولاً'); return; }
+  if (!item.walletId || !getWallets().some(w => w.id === item.walletId)) { editImport(item.id); toast('اختار الخط المستلم قبل تسجيل العملية'); return; }
   state.importingId = item.fingerprint;
-  state.draftMain = { date: todayStr(), type: item.type, secDir: 'w', name: '', amount: String(item.amount), notes: 'تمت مراجعتها من رسالة تحويل', walletId: item.walletId || getActiveWalletId() || '', ref: '' };
+  state.draftMain = { date: todayStr(), type: item.type, secDir: 'w', name: '', amount: String(item.amount), notes: 'تمت مراجعتها من رسالة تحويل', walletId: item.walletId || '', ref: '' };
   state.tab = 'home'; state.panel = 'main'; await addMainTxn();
   const saved = state.txns.some(t => t.sourceImportId === item.fingerprint); state.importingId = '';
   if (saved) { state.pendingImports = state.pendingImports.filter(p => p.id !== id); savePendingImports(); audit('import_confirmed', 'تأكيد عملية واردة من رسالة | ' + fmt(item.amount) + ' | ' + item.fingerprint); render(); toast('تم تسجيل العملية بعد مراجعتك'); }
 }
-function editImport(id) { const item = (state.pendingImports || []).find(p => p.id === id); if (!item) return; state.reviewEditId = id; state.reviewDraft = { amount: item.amount ? String(item.amount) : '', type: item.type || '', walletId: item.walletId || getActiveWalletId() || '' }; state.reviewText = ''; render(); window.scrollTo(0, 0); }
-function updateImport() { const item = (state.pendingImports || []).find(p => p.id === state.reviewEditId); if (!item) { state.reviewEditId = ''; return; } item.amount = round2(parseFloat(state.reviewDraft.amount) || 0); item.type = state.reviewDraft.type || ''; item.walletId = state.reviewDraft.walletId || getActiveWalletId() || ''; savePendingImports(); state.reviewEditId = ''; state.reviewDraft = { amount: '', type: '', walletId: getActiveWalletId() || '' }; render(); toast('تم حفظ بيانات المراجعة'); }
+function editImport(id) { const item = (state.pendingImports || []).find(p => p.id === id); if (!item) return; state.reviewEditId = id; state.reviewDraft = { amount: item.amount ? String(item.amount) : '', type: item.type || '', walletId: item.walletId || '' }; state.reviewText = ''; render(); window.scrollTo(0, 0); }
+function updateImport() { const item = (state.pendingImports || []).find(p => p.id === state.reviewEditId); if (!item) { state.reviewEditId = ''; return; } if (!state.reviewDraft.walletId || !getWallets().some(w => w.id === state.reviewDraft.walletId)) return toast('اختار الخط المستلم قبل حفظ المراجعة'); item.amount = round2(parseFloat(state.reviewDraft.amount) || 0); item.type = state.reviewDraft.type || ''; item.walletId = state.reviewDraft.walletId; savePendingImports(); state.reviewEditId = ''; state.reviewDraft = { amount: '', type: '', walletId: '' }; render(); toast('تم حفظ بيانات المراجعة'); }
 function deleteImport(id) { state.pendingImports = (state.pendingImports || []).filter(p => p.id !== id); if (state.reviewEditId === id) state.reviewEditId = ''; savePendingImports(); render(); }
 
 function viewHome() {
@@ -3031,7 +3039,7 @@ function viewSettings() {
   return '<div class="card"><h3>بيانات المحل والموظفين</h3>' +
     '<div class="field"><label>اسم المحل</label><input type="text" data-bind="draftSet.shopName" value="' + esc(d.shopName) + '"></div>' +
     '<div class="field"><label>أسماء الموظفين (افصل بينهم بفاصلة)</label><input type="text" data-bind="draftSet.people" value="' + esc(d.people) + '"></div>' +
-    '<div class="field"><label>تسمية الإيداع والسحب</label><select data-bind="draftSet.transactionLabelStyle"><option value="merchant"' + (d.transactionLabelStyle !== 'classic' ? ' selected' : '') + '>واضحة للتاجر: سحب كاش / إيداع كاش</option><option value="classic"' + (d.transactionLabelStyle === 'classic' ? ' selected' : '') + '>التسميات المعتادة: سحب / إيداع (تحويل)</option></select><div class="hint">تتطبق في الرئيسية والمراجعة والعمليات، وتقدر تغيّرها في أي وقت.</div></div>' +
+    '<div class="field"><label>تسمية الإيداع والسحب</label><select data-bind="draftSet.transactionLabelStyle"><option value="merchant"' + (d.transactionLabelStyle === 'merchant' ? ' selected' : '') + '>واضحة للتاجر: سحب كاش / إيداع كاش</option><option value="classic"' + (d.transactionLabelStyle === 'classic' ? ' selected' : '') + '>التسميات المعتادة: سحب / إيداع (تحويل)</option><option value="custom"' + (d.transactionLabelStyle === 'custom' ? ' selected' : '') + '>تسميات أكتبها بنفسي</option></select><div class="field-row"><div class="field"><label>اسم عملية السحب</label><input type="text" data-bind="draftSet.withdrawDisplayName" value="' + esc(d.withdrawDisplayName) + '" placeholder="مثال: صرف نقدي"></div><div class="field"><label>اسم عملية الإيداع</label><input type="text" data-bind="draftSet.depositDisplayName" value="' + esc(d.depositDisplayName) + '" placeholder="مثال: شحن محفظة"></div></div><div class="hint">الأسماء المخصصة تظهر عند اختيار «تسميات أكتبها بنفسي». تتطبق في الرئيسية والمراجعة وسجل العمليات.</div></div>' +
     '<h4 style="margin-top:14px">العمولات والتنبيهات</h4>' +
     '<div class="field-row"><div class="field"><label>عمولة السحب %</label><input type="number" step="0.01" min="0" data-bind="draftSet.withdrawRate" value="' + esc(d.withdrawRate) + '"></div>' +
     '<div class="field"><label>عمولة الإيداع %</label><input type="number" step="0.01" min="0" data-bind="draftSet.depositRate" value="' + esc(d.depositRate) + '"></div></div>' + sectionsSettingsCard() +
@@ -3325,7 +3333,7 @@ async function handleClick(e) {
     case 'mobileMore': state.mobileMenuOpen = !state.mobileMenuOpen; return render();
     case 'panel': state.panel = state.panel === v ? null : v; state.err = ''; return render();
     case 'parseImport': { const text = state.reviewText || ''; if (!text.trim()) return toast('الصق نص الرسالة الأول'); const parsed = parseTransferNotice(text); state.reviewDraft.amount = parsed.amount ? String(parsed.amount) : ''; state.reviewDraft.type = parsed.type; if (parsed.amount) toast('راجع المبلغ والنوع المقترحين قبل الإضافة'); else toast('ماقدرتش أقرأ المبلغ؛ اكتبه يدويًا'); return render(); }
-    case 'queueImport': { const amount = round2(parseFloat(state.reviewDraft.amount) || 0); if (amount <= 0) return toast('اكتب مبلغ صحيح'); const text = state.reviewText || ''; const fingerprint = text.trim() ? String(cyrb53(normalizeTransferDigits(text))) : uid(); if ((state.pendingImports || []).some(p => p.fingerprint === fingerprint) || state.txns.some(t => t.sourceImportId === fingerprint)) return toast('الرسالة دي اتضافت قبل كده'); state.pendingImports.push({ id: uid(), fingerprint: fingerprint, amount: amount, type: state.reviewDraft.type || '', walletId: state.reviewDraft.walletId || getActiveWalletId() || '', createdAt: Date.now(), source: 'paste' }); state.reviewText = ''; state.reviewDraft = { amount: '', type: '', walletId: getActiveWalletId() || '' }; savePendingImports(); return render(); }
+    case 'queueImport': { const amount = round2(parseFloat(state.reviewDraft.amount) || 0); if (amount <= 0) return toast('اكتب مبلغ صحيح'); const text = state.reviewText || ''; const fingerprint = text.trim() ? String(cyrb53(normalizeTransferDigits(text))) : uid(); if ((state.pendingImports || []).some(p => p.fingerprint === fingerprint) || state.txns.some(t => t.sourceImportId === fingerprint)) return toast('الرسالة دي اتضافت قبل كده'); state.pendingImports.push({ id: uid(), fingerprint: fingerprint, amount: amount, type: state.reviewDraft.type || '', walletId: state.reviewDraft.walletId || '', createdAt: Date.now(), source: 'paste' }); state.reviewText = ''; state.reviewDraft = { amount: '', type: '', walletId: '' }; savePendingImports(); return render(); }
     case 'confirmImport': return confirmImport(el.dataset.id);
     case 'editImport': return editImport(el.dataset.id);
     case 'updateImport': return updateImport();

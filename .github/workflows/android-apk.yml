@@ -20,6 +20,12 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Install current Android launcher icon
+        run: |
+          mkdir -p android/app/src/main/res/mipmap-nodpi
+          base64 --decode android/assets/mohafzatypro-icon-192.png.base64 > android/app/src/main/res/mipmap-nodpi/ic_launcher.png
+          test -s android/app/src/main/res/mipmap-nodpi/ic_launcher.png
+
       - name: Check signing secrets
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}

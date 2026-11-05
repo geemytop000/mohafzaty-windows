@@ -84,7 +84,8 @@ def collect_feed(url):
         if url in seen:
             raise ValueError('Repeated feed page')
         seen.add(url)
-        req = Request(validate_feed_url(url), headers={'Accept': 'application/feed+json, application/json'})
+        req = Request(validate_feed_url(url), headers={'Accept': 'application/feed+json, application/json',
+                                                        'User-Agent': 'MohafzatyPro-FeedImporter/1.0 (+https://mohafzatypro.com)'})
         with build_opener(NoRedirect).open(req, timeout=30) as response:
             raw = response.read(MAX_BYTES + 1)
         if len(raw) > MAX_BYTES:
@@ -139,7 +140,9 @@ if __name__ == '__main__':
     try:
         main()
     except HTTPError as error:
-        raise SystemExit('Visibly feed HTTP error: ' + str(error.code))
+        challenge = error.headers.get('cf-mitigated', '') == 'challenge'
+        suffix = ' (Cloudflare browser challenge)' if challenge else ''
+        raise SystemExit('Visibly feed HTTP error: ' + str(error.code) + suffix)
     except Exception as error:
         allowed = {'Missing VISIBLY_FEED_URL secret', 'Expected an HTTPS Visibly feed URL',
                    'Expected JSON Feed v1 or v1.1', 'Expected feed items',

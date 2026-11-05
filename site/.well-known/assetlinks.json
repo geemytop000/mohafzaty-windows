@@ -11,5 +11,18 @@
         "0F:7C:BE:39:36:8E:E1:E7:9C:92:C3:12:43:10:7D:C7:10:CB:E8:1D:2C:EC:15:F0:D4:A2:1A:21:B0:B2:24:53"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mohafzatypro.app.manual",
+      "sha256_cert_fingerprints": [
+        "40:38:C4:56:F0:B9:D9:06:CA:9B:BB:32:6D:62:90:2E:7E:5B:55:23:EF:D5:34:7B:16:95:A1:76:E6:E6:60:2B",
+        "0F:7C:BE:39:36:8E:E1:E7:9C:92:C3:12:43:10:7D:C7:10:CB:E8:1D:2C:EC:15:F0:D4:A2:1A:21:B0:B2:24:53"
+      ]
+    }
   }
 ]

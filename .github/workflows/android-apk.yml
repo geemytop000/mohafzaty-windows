@@ -83,13 +83,15 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          gradle --no-daemon clean assembleRelease bundleRelease
-          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
-          cp app/build/outputs/bundle/release/app-release.aab "$GITHUB_WORKSPACE/mohafzaty-pro-android.aab"
+          gradle --no-daemon clean assembleFullRelease assembleManualRelease bundleFullRelease
+          cp app/build/outputs/apk/full/release/app-full-release.apk "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
+          cp app/build/outputs/apk/manual/release/app-manual-release.apk "$GITHUB_WORKSPACE/mohafzaty-pro-android-manual.apk"
+          cp app/build/outputs/bundle/fullRelease/app-full-release.aab "$GITHUB_WORKSPACE/mohafzaty-pro-android.aab"
 
       - name: Verify APK and AAB signatures
         run: |
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$GITHUB_WORKSPACE/mohafzaty-pro-android-manual.apk"
           jarsigner -verify "$GITHUB_WORKSPACE/mohafzaty-pro-android.aab"
 
       - name: Publish Android release
@@ -101,4 +103,5 @@ jobs:
           generate_release_notes: true
           files: |
             mohafzaty-pro-android.apk
+            mohafzaty-pro-android-manual.apk
             mohafzaty-pro-android.aab

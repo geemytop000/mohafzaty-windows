@@ -10,6 +10,20 @@ android {
         buildConfig true
     }
 
+    flavorDimensions += "notificationCapture"
+    productFlavors {
+        full {
+            dimension "notificationCapture"
+        }
+        manual {
+            dimension "notificationCapture"
+            applicationIdSuffix ".manual"
+            versionNameSuffix "-manual"
+            manifestPlaceholders = [webLaunchUrl: "https://mohafzatypro.com/app/?notificationCapture=manual"]
+            resValue "string", "app_name", "محفظتي برو - يدوي"
+        }
+    }
+
     defaultConfig {
         applicationId "com.mohafzatypro.app"
         minSdk 23

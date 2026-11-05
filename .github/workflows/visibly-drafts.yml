@@ -2,6 +2,12 @@ name: Fetch Visibly drafts for review
 
 on:
   workflow_dispatch:
+  push:
+    branches: [codex/visibly-draft-integration]
+    paths:
+      - 'scripts/visibly_drafts.py'
+      - 'tests/test_visibly_drafts.py'
+      - '.github/workflows/visibly-drafts.yml'
 
 permissions:
   contents: read
@@ -24,8 +30,7 @@ jobs:
       - name: Fetch review data
         run: python scripts/visibly_drafts.py
         env:
-          VISIBLY_API_KEY: ${{ secrets.VISIBLY_API_KEY }}
-          VISIBLY_SITE_ID: ${{ vars.VISIBLY_SITE_ID }}
+          VISIBLY_FEED_URL: ${{ secrets.VISIBLY_FEED_URL }}
       - name: Save review package
         uses: actions/upload-artifact@v4
         with:

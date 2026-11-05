@@ -1,0 +1,29 @@
+name: Remove obsolete manual APK asset
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/remove-manual-apk.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  remove_manual_apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete manual APK from release 1.0.25
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const release = await github.rest.repos.getReleaseByTag({ owner, repo, tag: "android-v1.0.25" });
+            const asset = release.data.assets.find(item => item.name === "mohafzaty-pro-android-manual.apk");
+            if (!asset) {
+              core.info("The obsolete manual APK is already absent.");
+              return;
+            }
+            await github.rest.repos.deleteReleaseAsset({ owner, repo, asset_id: asset.id });
+            core.info("Deleted the obsolete manual APK asset from release 1.0.25.");

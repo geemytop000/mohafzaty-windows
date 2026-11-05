@@ -5,6 +5,7 @@ import os
 import re
 import time
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from urllib.parse import urlencode, urlsplit
 
@@ -137,6 +138,14 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except Exception:
-        # Do not echo remote bodies or exception text, which may contain credentials.
-        raise SystemExit('Visibly export failed. Check VISIBLY_FEED_URL and feed availability.')
+    except HTTPError as error:
+        raise SystemExit('Visibly feed HTTP error: ' + str(error.code))
+    except Exception as error:
+        allowed = {'Missing VISIBLY_FEED_URL secret', 'Expected an HTTPS Visibly feed URL',
+                   'Expected JSON Feed v1 or v1.1', 'Expected feed items',
+                   'Invalid feed item ID', 'Feed item has no content',
+                   'Repeated feed article', 'Feed exceeds size limit',
+                   'API redirect refused to protect credentials',
+                   'Paginated feed requires endpoint review; no partial export written'}
+        reason = str(error) if type(error) is ValueError and str(error) in allowed else type(error).__name__
+        raise SystemExit('Visibly export failed: ' + reason)

@@ -24,7 +24,7 @@ jobs:
           ref: ${{ github.ref_name }}
 
       - name: Prepare approved app icon for preview
-        run: cat .github/assets/icon-parts/icon-*.b64 | tr -d '\\r\\n' | base64 --decode > site/app/icon-transparent-192.png
+        run: cat .github/assets/icon-parts/icon-*.b64 | tr -d '\r\n' | base64 --decode > site/app/icon-transparent-192.png
 
       - name: Deploy preview to Cloudflare Pages
         run: npx wrangler@latest pages deploy site --project-name=mohafzaty-pro --branch=${{ github.ref_name }}

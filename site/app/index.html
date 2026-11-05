@@ -1553,11 +1553,19 @@ function validateWalletDetails(result, editingId) {
     }
   }
   const normalized = normalizeWalletNumber(result.phone);
-  if (!/^\d{11}$/.test(normalized)) { toast('رقم الموبايل لازم يكون 11 رقم بالضبط'); return false; }
+  if (!/^\\d{11}$/.test(normalized)) { toast('رقم الموبايل لازم يكون 11 رقم بالضبط'); return false; }
   const duplicates = getWallets().filter(function(w) { return w.id !== editingId && normalizeWalletNumber(w.phone) === normalized; });
   if (duplicates.length) {
+    const sameAccount = duplicates.some(function(w) {
+      if (provider !== (w.providerType || '')) return false;
+      if (provider === 'instapay') return String(w.bank || w.bankOther || '').trim() === String(result.bank || '').trim();
+      if (provider === 'custom') return normBotText(w.customProvider) === normBotText(result.customProvider);
+      return true;
+    });
+    if (sameAccount) { toast(provider === 'instapay' ? 'رقم الهاتف مضاف بالفعل إلى إنستا باي في هذا البنك' : 'رقم الخط مضاف بالفعل لهذا النوع'); return false; }
+    if (provider !== 'instapay') { toast('رقم الهاتف مضاف بالفعل. يمكن استخدامه في إنستا باي فقط إذا كان مرتبطًا بحساب بنك مختلف.'); return false; }
     const descriptions = duplicates.map(walletProviderDescription);
-    const message = 'الرقم ' + normalized + ' مضاف بالفعل إلى:\n• ' + descriptions.join('\n• ') + '\n\nهل تريد إضافته مرة أخرى؟';
+    const message = 'الرقم ' + normalized + ' مضاف بالفعل إلى:\n• ' + descriptions.join('\n• ') + '\n\nتأكيد: تريد إضافة إنستا باي لهذا البنك أيضًا؟';
     if (!window.confirm(message)) return false;
   }
   result.phone = normalized;
@@ -1686,15 +1694,31 @@ function syncTotalPhoneOpening() {
   }
 }
 
+function walletLimitDefaults(provider) {
+  const limits = {
+    instapay: { transaction: 70000, daily: 120000, monthly: 400000 },
+    vodafone: { transaction: 60000, daily: 60000, monthly: 200000 },
+    etisalat: { transaction: 0, daily: 30000, monthly: 100000 },
+    orange: { transaction: 0, daily: 60000, monthly: 200000 },
+    we: { transaction: 0, daily: 60000, monthly: 200000 },
+    custom: { transaction: 0, daily: 0, monthly: 0 }
+  };
+  return limits[provider] || limits.custom;
+}
 async function addWalletModal() {
   const fields = walletTypeFields();
   fields.push(
     { k: 'label', label: 'اسم الخط أو المحفظة (مثال: فودافون كاش - خط 1)' },
-    { k: 'opening', label: 'الرصيد الافتتاحي للخط', type: 'number', value: '0' },
-    { k: 'dailyLimit', label: 'الحد اليومي بالجنيه (اكتب 0 إذا بدون حد)', type: 'number', value: '60000' },
-    { k: 'monthlyLimit', label: 'الحد الشهري بالجنيه (اكتب 0 إذا بدون حد)', type: 'number', value: '200000' }
+    { k: 'opening', label: 'الرصيد الافتتاحي للحساب أو المحفظة', type: 'number', value: '0' },
+    { k: 'transactionLimit', label: 'حد العملية الواحدة بالجنيه (0 = بدون حد مسجل)', type: 'number', value: '0' },
+    { k: 'dailyLimit', label: 'الحد اليومي بالجنيه (0 = بدون حد مسجل)', type: 'number', value: '0' },
+    { k: 'monthlyLimit', label: 'الحد الشهري بالجنيه (0 = بدون حد مسجل)', type: 'number', value: '0' }
   );
-  const r = await askModal('إضافة رقم محفظة جديد', fields, 'إضافة', function(value) { return validateWalletDetails(value, ''); });
+  const r = await askModal('إضافة رقم محفظة جديد', fields, 'إضافة', function(value) { return validateWalletDetails(value, ''); }, function(provider) {
+    const d = walletLimitDefaults(provider);
+    const byKey = { transactionLimit: d.transaction, dailyLimit: d.daily, monthlyLimit: d.monthly };
+    fields.forEach(function(f, i) { if (byKey[f.k] != null) { const input = document.getElementById('mf' + i); if (input) input.value = String(byKey[f.k]); } });
+  });
   if (!r) return;
   const ws = S().wallets && S().wallets.length ? S().wallets.slice() : getWallets().slice();
   const wid = 'w_' + Date.now().toString(36);
@@ -1707,6 +1731,7 @@ async function addWalletModal() {
     bankOther: r.providerType === 'instapay' ? r.bankOther : '',
     label: (r.label || r.customProvider || r.phone).trim(),
     openingBalance: parseFloat(r.opening) || 0,
+    transactionLimit: parseFloat(r.transactionLimit) || 0,
     dailyLimit: parseFloat(r.dailyLimit) || 0,
     monthlyLimit: parseFloat(r.monthlyLimit) || 0
   });
@@ -1726,8 +1751,9 @@ async function editWalletModal(wid) {
   const fields = walletTypeFields(w);
   fields.push(
     { k: 'label', label: 'اسم الخط أو المحفظة', value: w.label },
-    { k: 'opening', label: 'الرصيد الافتتاحي', type: 'number', value: w.openingBalance },
-    { k: 'dailyLimit', label: 'الحد اليومي بالجنيه (0 = بدون حد)', type: 'number', value: w.dailyLimit },
+    { k: 'opening', label: 'الرصيد الافتتاحي للحساب أو المحفظة', type: 'number', value: w.openingBalance },
+    { k: 'transactionLimit', label: 'حد العملية الواحدة بالجنيه (0 = بدون حد مسجل)', type: 'number', value: w.transactionLimit || 0 },
+    { k: 'dailyLimit', label: 'الحد اليومي بالجنيه (0 = بدون حد مسجل)', type: 'number', value: w.dailyLimit },
     { k: 'monthlyLimit', label: 'الحد الشهري بالجنيه (0 = بدون حد)', type: 'number', value: w.monthlyLimit }
   );
   const r = await askModal('تعديل رقم المحفظة', fields, 'حفظ', function(value) { return validateWalletDetails(value, wid); });
@@ -1739,6 +1765,7 @@ async function editWalletModal(wid) {
   w.bankOther = r.providerType === 'instapay' ? r.bankOther : '';
   w.label = (r.label || r.customProvider || r.phone).trim();
   w.openingBalance = parseFloat(r.opening) || 0;
+  w.transactionLimit = parseFloat(r.transactionLimit) || 0;
   w.dailyLimit = parseFloat(r.dailyLimit) || 0;
   w.monthlyLimit = parseFloat(r.monthlyLimit) || 0;
   state.settings.wallets = ws;
@@ -1858,9 +1885,14 @@ async function addMainTxn() {
   // فحص حدود المحفظة اليومية والشهرية مع المنع التام والتنبيه
   if (td.phone !== 0 && wallet) {
     const wStat = getWalletStats(wallet.id);
+    const tLim = Number(wallet.transactionLimit) || 0;
     const dLim = Number(wallet.dailyLimit) || 0;
     const mLim = Number(wallet.monthlyLimit) || 0;
 
+    if (tLim > 0 && amt > tLim + 0.001) {
+      state.err = '⚠️ تعذر تنفيذ العملية: المبلغ يتجاوز حد العملية الواحدة المسجل لهذا الحساب (' + fmt(tLim) + ' ' + CUR + ').';
+      return render();
+    }
     if (dLim > 0 && (wStat.usedToday + amt) > dLim + 0.001) {
       state.err = '⚠️ تعذر تنفيذ العملية: المبلغ (' + fmt(amt) + ' ' + CUR + ') يتجاوز الحد اليومي لمحفظة ' + (wallet.label || wallet.phone) + ' (' + fmt(dLim) + ' ' + CUR + '). المتبقي اليوم: ' + fmt(wStat.remDaily) + ' ' + CUR + ' فقط - العملية لم تُنفّذ.';
       return render();
@@ -2743,11 +2775,10 @@ function parseTransferNotice(text) {
   }
   candidates.sort((a, b) => b.score - a.score || a.index - b.index);
   const amount = candidates.length ? candidates[0].value : 0;
+  const meaningText = normBotText(lower);
   let type = '';
-  if (/تم استلام/i.test(lower)) type = 'سحب';
-  else if (/تم تحويل/i.test(lower)) type = 'ايداع';
-  else if (/(استلمت|وصلك|وارد|استقبلت|إضافة رصيد|اضافة رصيد|received|credited|deposit received)/i.test(lower)) type = 'سحب';
-  else if (/(تحويل مبلغ|تم إرسال|تم ارسال|تم إيداع|تم ايداع|إيداع ناجح|ايداع ناجح|خصم|صادر|أرسلت|ارسلت|تم سحب|sent|debited|withdrawn)/i.test(lower)) type = 'ايداع';
+  if (/(تم استلام|تم استلم|استلمت|وصلك|وارد|استقبلت|اضافه رصيد|received|credited|deposit received)/i.test(meaningText)) type = 'سحب';
+  else if (/(تم تحويل|تحويل مبلغ|تم ارسال|تم ايداع|ايداع ناجح|خصم|صادر|ارسلت|تم سحب|sent|debited|withdrawn)/i.test(meaningText)) type = 'ايداع';
   return { amount: Number.isFinite(amount) && amount > 0 ? round2(amount) : 0, type: type };
 }
 function pendingImportsKey() {
@@ -4005,7 +4036,7 @@ function sectionBoxes(T) {
     return '<div class="box"><div class="l"><span>' + esc(a.name) + '</span><span><i class="ed" data-act="renSection" data-id="' + a.id + '" title="تعديل الاسم">✏️</i><i class="ed" data-act="delSection" data-id="' + a.id + '" title="حذف">✕</i></span></div><div class="v num">' + fmt(T.acctB[a.id] || 0) + '</div></div>';
   }).join('') + '</div>';
 }
-function askModal(title, fields, ok, validator) {
+function askModal(title, fields, ok, validator, onProviderChange) {
   return new Promise(function (resolve) {
     const ov = document.createElement('div');
     ov.dir = 'rtl'; ov.className = 'mdl-ov noprint';
@@ -4043,6 +4074,7 @@ function askModal(title, fields, ok, validator) {
         if (warning) warning.style.display = 'none';
         const label = ov.querySelector('[data-wallet-phone-field] label');
         if (label) label.textContent = providerSelect.value === 'instapay' ? 'رقم الموبايل المرتبط بإنستاباي (11 رقم)' : 'رقم الموبايل (11 رقم)';
+        if (onProviderChange) onProviderChange(providerSelect.value);
       });
       updateWalletConditionalFields();
     }

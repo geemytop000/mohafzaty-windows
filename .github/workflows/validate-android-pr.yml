@@ -54,7 +54,6 @@ jobs:
         with:
           name: mohafzaty-pro-preview-apks
           path: |
-            android/app/build/outputs/apk/full/debug/app-full-debug.apk
             android/app/build/outputs/apk/manual/debug/app-manual-debug.apk
           if-no-files-found: error
           retention-days: 14

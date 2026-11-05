@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">محفظتي برو</string>
-    <string name="notification_listener_name">تنبيهات التحويل للمراجعة</string>
     <string name="launch_url">https://mohafzatypro.com/app/</string>
     <string name="asset_statements" translatable="false">[{&quot;relation&quot;:[&quot;delegate_permission/common.handle_all_urls&quot;],&quot;target&quot;:{&quot;namespace&quot;:&quot;web&quot;,&quot;site&quot;:&quot;https://mohafzatypro.com&quot;}}]</string>
 </resources>

@@ -9,10 +9,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="محفظتي برو">
-<link rel="icon" href="/app/favicon.svg?v=20261106" type="image/svg+xml">
-<link rel="icon" href="/app/icon-192.png?v=20261106" type="image/png" sizes="192x192">
-<link rel="shortcut icon" href="/app/icon-192.png?v=20261106" type="image/png">
-<link rel="apple-touch-icon" href="/app/icon-192.png?v=20261106">
+<link rel="icon" href="/app/favicon.svg?v=20261107" type="image/svg+xml">
+<link rel="icon" href="/app/icon-192.png?v=20261107" type="image/png" sizes="192x192">
+<link rel="shortcut icon" href="/app/icon-192.png?v=20261107" type="image/png">
+<link rel="apple-touch-icon" href="/app/icon-192.png?v=20261107">
 <link rel="manifest" href="manifest.webmanifest">
 
 <title>محفظتي برو</title>
@@ -261,10 +261,6 @@ html,body{overflow-x:hidden}
 .mdl h3{margin:0 0 12px;font-size:18px}
 .mdl label{display:block;font-size:13px;color:#596153;margin:10px 0 4px}
 .mdl input{width:100%;box-sizing:border-box;padding:13px;border:1.5px solid #D7CBA5;border-radius:12px;font-size:16px;font-family:inherit;background:#fff}
-.mdl .wallet-provider-select{width:100%;min-height:60px;padding:14px 16px;border:2px solid #2F6F4E;border-radius:14px;font-family:inherit;font-size:18px;font-weight:900;color:#203b2d;background:#EAF3EC;cursor:pointer}
-.mdl .wallet-provider-select:focus{outline:none;box-shadow:0 0 0 4px rgba(47,111,78,.18)}
-.mdl .wallet-provider-error{display:none;margin-top:8px;padding:10px 12px;border:1.5px solid #B42318;border-radius:10px;background:#FCE8E6;color:#B42318;font-size:14px;font-weight:800;line-height:1.5}
-body.dark-mode .mdl .wallet-provider-select{background:#1A3320;color:#E0E0E0;border-color:#4CAF50}
 .mdl input:focus{outline:none;border-color:#2F6F4E;box-shadow:0 0 0 3px rgba(47,111,78,.15)}
 .mdl-b{display:flex;gap:10px;margin-top:16px}
 .mdl-b button,.mdl-row{flex:1;padding:13px;border:0;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
@@ -332,13 +328,6 @@ body.dark-mode .mdl .wallet-provider-select{background:#1A3320;color:#E0E0E0;bor
 .bot-msg.user{background:linear-gradient(135deg,#2F6F4E,#3b8a63);color:#fff;align-self:flex-end;border-bottom-left-radius:4px;box-shadow:0 3px 10px rgba(47,111,78,.25)}
 .bot-msg .num{font-family:'JetBrains Mono',monospace;font-weight:700}
 .bot-msg strong,.bot-msg b{font-weight:700}
-.bot-choice-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-.bot-choice{border:1px solid #2F6F4E;border-radius:12px;padding:7px 11px;background:#EAF3EC;color:#203b2d;font:700 12.5px 'Tajawal',sans-serif;cursor:pointer}
-.bot-choice:hover{background:#DDEBDD}
-.bot-sources{margin-top:9px;padding-top:7px;border-top:1px solid #E5DEC9;font-size:11.5px}
-.bot-sources a{color:#2F6F4E;text-decoration:underline}
-.bot-code{direction:ltr;unicode-bidi:isolate;background:#E3DCC7;border-radius:6px;padding:2px 5px;font-family:Consolas,monospace;font-weight:700}
-
 
 .bot-chips{display:flex;gap:6px;overflow-x:auto;padding:9px 14px;background:#F6F1E4;border-top:1px solid #E5DEC9;white-space:nowrap;-webkit-overflow-scrolling:touch}
 .bot-chip{background:#fff;border:1px solid #D5C8A6;color:#17261d;border-radius:16px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;flex-shrink:0}
@@ -1494,83 +1483,6 @@ async function load() {
 // =========================================================
 // إدارة أرقام المحافظ المتعددة والحدود اليومية والشهرية
 // =========================================================
-function normalizeWalletNumber(value) {
-  return String(value || '')
-    .replace(/[٠-٩۰-۹]/g, function(c) { return String('٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹'.indexOf(c) % 10); })
-    .replace(/[\s+()\-.]/g, '')
-    .trim();
-}
-function walletProviderOptions(selected) {
-  const items = [
-    ['vodafone', 'فودافون'],
-    ['etisalat', 'اتصالات / e&'],
-    ['orange', 'أورنج'],
-    ['we', 'WE'],
-    ['instapay', 'إنستاباي'],
-    ['custom', 'نوع آخر']
-  ];
-  return '<option value="">اختار نوع الرقم</option>' + items.map(function(x) {
-    return '<option value="' + x[0] + '"' + (selected === x[0] ? ' selected' : '') + '>' + x[1] + '</option>';
-  }).join('');
-}
-const INSTAPAY_BANKS = [
-  'البنك المركزي المصري','البنك العربي الأفريقي الدولي','البنك العربي','بنك القاهرة','بنك مصر','بنك الإسكندرية',
-  'البنك التجاري الدولي CIB','البنك المصري الخليجي EGBANK','البنك الأهلي المصري','بنك قطر الوطني الأهلي QNB',
-  'بنك الشركة المصرفية العربية الدولية SAIB','بنك تنمية الصادرات المصري','البنك العربي الدولي AIB',
-  'بنك فيصل الإسلامي المصري','بنك البركة مصر','بنك التجاري وفا مصر','مصرف أبوظبي الإسلامي مصر',
-  'البنك الأهلي الكويتي مصر','بنك التعمير والإسكان','بنك الكويت الوطني مصر','البنك المصري العربي للأراضي',
-  'بنك قناة السويس','البنك الأهلي المتحد','المصرف المتحد','HSBC مصر','مصرف أبوظبي التجاري مصر',
-  'بنك أبوظبي الأول مصر','سيتي بنك مصر','كريدي أجريكول مصر','بنك المشرق مصر','الإمارات دبي الوطني مصر',
-  'بنك NXT','بنك المؤسسة العربية المصرفية ABC','MIDBANK','بنك التنمية الصناعية','البنك الزراعي المصري','بنك آخر'
-];
-function walletTypeFields(wallet) {
-  const w = wallet || {};
-  const provider = w.providerType || '';
-  return [
-    { k: 'providerType', label: 'نوع الخط أو المحفظة', type: 'select', value: provider, options: walletProviderOptions(provider) },
-    { k: 'customProvider', label: 'اكتب نوع الرقم الآخر', value: w.customProvider || '', hiddenUnless: 'custom' },
-    { k: 'bank', label: 'البنك المرتبط بإنستاباي', type: 'select', value: w.bank && INSTAPAY_BANKS.indexOf(w.bank) < 0 ? 'بنك آخر' : (w.bank || ''), options: '<option value="">اختار البنك</option>' + INSTAPAY_BANKS.map(function(b) { return '<option value="' + esc(b) + '"' + ((w.bank === b || (b === 'بنك آخر' && w.bank && INSTAPAY_BANKS.indexOf(w.bank) < 0)) ? ' selected' : '') + '>' + esc(b) + '</option>'; }).join(''), hiddenUnless: 'instapay' },
-    { k: 'bankOther', label: 'اكتب اسم البنك', value: w.bank && INSTAPAY_BANKS.indexOf(w.bank) < 0 ? w.bank : (w.bankOther || ''), hiddenUnless: 'بنك آخر', dependsOn: 'bank' },
-    { k: 'phone', label: provider === 'instapay' ? 'رقم الموبايل المرتبط بإنستاباي (11 رقم)' : 'رقم الموبايل (11 رقم)', value: w.phone || '', inputmode: 'numeric', maxlength: 11, pattern: '[0-9٠-٩۰-۹]{11}', requiredDigits: 11 }
-  ];
-}
-function walletProviderDescription(w) {
-  if (w.providerType === 'instapay') return 'إنستاباي - ' + (w.bank || w.bankOther || 'بنك غير محدد');
-  if (w.providerType === 'custom') return (w.customProvider || w.label || 'نوع مخصص') + (w.label ? ' (' + w.label + ')' : '');
-  const names = { vodafone: 'فودافون كاش', etisalat: 'اتصالات / e&', orange: 'أورنج كاش', we: 'WE' };
-  return names[w.providerType] || w.label || 'نوع غير محدد';
-}
-function validateWalletDetails(result, editingId) {
-  if (!result) return false;
-  const provider = result.providerType || '';
-  if (!provider) { toast('اختار نوع الخط أو المحفظة'); return false; }
-  if (provider === 'custom' && !String(result.customProvider || '').trim()) { toast('اكتب نوع الرقم الآخر'); return false; }
-  if (provider === 'instapay') {
-    if (!String(result.bank || '').trim()) { toast('اختار البنك المرتبط بإنستاباي أو اختر «بنك آخر» واكتب اسمه'); return false; }
-    if (result.bank === 'بنك آخر') {
-      if (!String(result.bankOther || '').trim()) { toast('اكتب اسم البنك'); return false; }
-      result.bank = String(result.bankOther).trim();
-    }
-  }
-  const normalized = normalizeWalletNumber(result.phone);
-  if (!/^\\d{11}$/.test(normalized)) { toast('رقم الموبايل لازم يكون 11 رقم بالضبط'); return false; }
-  const duplicates = getWallets().filter(function(w) { return w.id !== editingId && normalizeWalletNumber(w.phone) === normalized; });
-  if (duplicates.length) {
-    const sameAccount = duplicates.some(function(w) {
-      if (provider !== (w.providerType || '')) return false;
-      if (provider === 'instapay') return String(w.bank || w.bankOther || '').trim() === String(result.bank || '').trim();
-      if (provider === 'custom') return normBotText(w.customProvider) === normBotText(result.customProvider);
-      return true;
-    });
-    if (sameAccount) { toast(provider === 'instapay' ? 'رقم الهاتف مضاف بالفعل إلى إنستا باي في هذا البنك' : 'رقم الخط مضاف بالفعل لهذا النوع'); return false; }
-    if (provider !== 'instapay') { toast('رقم الهاتف مضاف بالفعل. يمكن استخدامه في إنستا باي فقط إذا كان مرتبطًا بحساب بنك مختلف.'); return false; }
-    const descriptions = duplicates.map(walletProviderDescription);
-    const message = 'الرقم ' + normalized + ' مضاف بالفعل إلى:\n• ' + descriptions.join('\n• ') + '\n\nتأكيد: تريد إضافة إنستا باي لهذا البنك أيضًا؟';
-    if (!window.confirm(message)) return false;
-  }
-  result.phone = normalized;
-  return true;
-}
 function getWallets() {
   const w = S().wallets;
   if (Array.isArray(w) && w.length) return w;
@@ -1595,6 +1507,43 @@ function getActiveWalletId() {
 function getActiveWallet() {
   const wid = getActiveWalletId();
   return getWallets().find(w => w.id === wid) || getWallets()[0];
+}
+
+function inferWalletProvider(w) {
+  const text = normBotText((w && (w.label || w.phone)) || '');
+  if (text.includes('انستا') || text.includes('insta')) return 'instapay';
+  if (text.includes('فودافون') || text.includes('vodafone')) return 'vodafone';
+  if (text.includes('اورنج') || text.includes('orange')) return 'orange';
+  if (text.includes('اتصالات') || text.includes('اي اند') || text.includes('e&') || text.includes('etisalat')) return 'etisalat';
+  if (text.includes('we pay') || text.includes('وي باي') || text.includes('وي')) return 'we';
+  return 'custom';
+}
+
+function normalizeWalletPhone(value) {
+  return String(value || '').replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).replace(/\D/g, '');
+}
+
+function walletProviderDefaults(provider) {
+  const defaults = {
+    vodafone: { daily: 60000, monthly: 200000, transaction: 0 },
+    orange: { daily: 60000, monthly: 200000, transaction: 0 },
+    we: { daily: 60000, monthly: 200000, transaction: 0 },
+    instapay: { daily: 120000, monthly: 400000, transaction: 70000 },
+    etisalat: { daily: 0, monthly: 0, transaction: 0 },
+    custom: { daily: 0, monthly: 0, transaction: 0 }
+  };
+  return defaults[provider] || { daily: 0, monthly: 0, transaction: 0 };
+}
+
+function applyWalletProviderDefaults(overlay, provider) {
+  if (!overlay) return;
+  const limits = walletProviderDefaults(provider);
+  const values = { 'wallet-transaction-limit': limits.transaction, 'wallet-daily-limit': limits.daily, 'wallet-monthly-limit': limits.monthly };
+  Object.keys(values).forEach(function(role) {
+    const wrap = overlay.querySelector('[data-role="' + role + '"]');
+    const input = wrap && wrap.querySelector('input');
+    if (input) input.value = String(values[role]);
+  });
 }
 
 function setActiveWallet(wid) {
@@ -1694,42 +1643,72 @@ function syncTotalPhoneOpening() {
   }
 }
 
-function walletLimitDefaults(provider) {
-  const limits = {
-    instapay: { transaction: 70000, daily: 120000, monthly: 400000 },
-    vodafone: { transaction: 60000, daily: 60000, monthly: 200000 },
-    etisalat: { transaction: 0, daily: 30000, monthly: 100000 },
-    orange: { transaction: 0, daily: 60000, monthly: 200000 },
-    we: { transaction: 0, daily: 60000, monthly: 200000 },
-    custom: { transaction: 0, daily: 0, monthly: 0 }
-  };
-  return limits[provider] || limits.custom;
-}
 async function addWalletModal() {
-  const fields = walletTypeFields();
-  fields.push(
-    { k: 'label', label: 'اسم الخط أو المحفظة (مثال: فودافون كاش - خط 1)' },
+  const providerOptions = [
+    { value: '', label: '— اختر نوع الخط أو المحفظة —' },
+    { value: 'vodafone', label: 'فودافون كاش' },
+    { value: 'etisalat', label: 'إي آند موني (اتصالات)' },
+    { value: 'orange', label: 'أورنج كاش' },
+    { value: 'we', label: 'WE Pay' },
+    { value: 'instapay', label: 'إنستا باي' },
+    { value: 'custom', label: 'نوع آخر — اكتب الاسم' }
+  ];
+  const bankNames = [
+    'البنك المركزي المصري', 'بنك مصر', 'البنك الأهلي المصري', 'بنك الإسكندرية', 'بنك القاهرة',
+    'البنك التجاري الدولي CIB', 'بنك قطر الوطني الأهلي QNB', 'البنك المصري الخليجي EG Bank',
+    'بنك الشركة المصرفية العربية الدولية SAIB', 'البنك العربي الأفريقي الدولي', 'البنك العربي',
+    'البنك المصري لتنمية الصادرات', 'المصرف العربي الدولي', 'بنك فيصل الإسلامي', 'بنك البركة مصر',
+    'التجاري وفا بنك', 'مصرف أبو ظبي الإسلامي', 'البنك الأهلي الكويتي', 'بنك التعمير والإسكان',
+    'بنك الكويت الوطني', 'البنك العقاري المصري العربي', 'بنك قناة السويس', 'البنك الأهلي المتحد',
+    'المصرف المتحد', 'بنك HSBC', 'بنك أبو ظبي التجاري', 'بنك أبوظبي الأول مصر', 'سيتي بنك مصر',
+    'بنك كريدي أجريكول مصر', 'بنك المشرق مصر', 'بنك الإمارات دبي الوطني مصر', 'بنك نكست',
+    'المؤسسة العربية المصرفية ABC', 'ميدبنك', 'بنك التنمية الصناعية', 'البنك الزراعي المصري'
+  ];
+  const fields = [
+    { k: 'provider', label: 'نوع الخط أو المحفظة — اختار بوضوح', type: 'select', value: '', options: providerOptions, className: 'wallet-provider-select', required: true, onChange: applyWalletProviderDefaults },
+    { k: 'customProvider', label: 'اكتب اسم النوع الآخر', value: '', required: true, showWhen: { key: 'provider', value: 'custom' } },
+    { k: 'phone', label: 'رقم الهاتف (11 رقمًا)', value: '', inputmode: 'numeric', pattern: '[0-9٠-٩۰-۹]{11}', maxlength: 11, required: true },
+    { k: 'bank', label: 'البنك المرتبط بإنستا باي — مطلوب عند اختيار إنستا باي', type: 'select', value: '', required: true, options: [{ value: '', label: '— اختار البنك —' }].concat(bankNames.map(n => ({ value: n, label: n })), [{ value: '__other__', label: 'بنك آخر — اكتب اسمه' }]), showWhen: { key: 'provider', value: 'instapay' } },
+    { k: 'customBank', label: 'اكتب اسم البنك', value: '', required: true, showWhen: { key: 'bank', value: '__other__' } },
+    { k: 'label', label: 'اسم الخط أو المحفظة الظاهر في البرنامج', placeholder: 'مثال: فودافون كاش — خط 1' },
     { k: 'opening', label: 'الرصيد الافتتاحي للحساب أو المحفظة', type: 'number', value: '0' },
-    { k: 'transactionLimit', label: 'حد العملية الواحدة بالجنيه (0 = بدون حد مسجل)', type: 'number', value: '0' },
-    { k: 'dailyLimit', label: 'الحد اليومي بالجنيه (0 = بدون حد مسجل)', type: 'number', value: '0' },
-    { k: 'monthlyLimit', label: 'الحد الشهري بالجنيه (0 = بدون حد مسجل)', type: 'number', value: '0' }
-  );
-  const r = await askModal('إضافة رقم محفظة جديد', fields, 'إضافة', function(value) { return validateWalletDetails(value, ''); }, function(provider) {
-    const d = walletLimitDefaults(provider);
-    const byKey = { transactionLimit: d.transaction, dailyLimit: d.daily, monthlyLimit: d.monthly };
-    fields.forEach(function(f, i) { if (byKey[f.k] != null) { const input = document.getElementById('mf' + i); if (input) input.value = String(byKey[f.k]); } });
-  });
+    { k: 'transactionLimit', label: 'الحد الأقصى للعملية الواحدة بالجنيه (0 = بدون حد مسجل)', type: 'number', value: '0', role: 'wallet-transaction-limit' },
+    { k: 'dailyLimit', label: 'الحد اليومي بالجنيه (0 = بدون حد مسجل)', type: 'number', value: '0', role: 'wallet-daily-limit' },
+    { k: 'monthlyLimit', label: 'الحد الشهري بالجنيه (0 = بدون حد مسجل)', type: 'number', value: '0', role: 'wallet-monthly-limit' }
+  ];
+  const r = await askModal('إضافة خط أو محفظة', fields, 'إضافة');
   if (!r) return;
+  const provider = r.provider || '';
+  const digits = normalizeWalletPhone(r.phone);
+  if (!provider) return toast('⚠️ اختار نوع الخط أو المحفظة من الخانة الواضحة بالأعلى');
+  if (!String(r.phone || '').trim()) return toast('اكتب رقم الهاتف أو رقم الحساب');
+  if (provider !== 'custom' && digits.length !== 11) return toast('رقم الهاتف لازم يكون 11 رقمًا بالضبط');
+  if (provider === 'custom' && !String(r.customProvider || '').trim()) return toast('اكتب اسم نوع الخط أو المحفظة الآخر');
+  if (provider === 'instapay' && (!r.bank || (r.bank === '__other__' && !String(r.customBank || '').trim()))) return toast('⚠️ اختار بنك إنستا باي أو اكتب اسمه');
   const ws = S().wallets && S().wallets.length ? S().wallets.slice() : getWallets().slice();
+  const bank = provider === 'instapay' ? (r.bank === '__other__' ? String(r.customBank || '').trim() : r.bank) : '';
+  const providerLabel = { vodafone: 'فودافون كاش', etisalat: 'إي آند موني', orange: 'أورنج كاش', we: 'WE Pay', instapay: 'إنستا باي', custom: String(r.customProvider || '').trim() }[provider];
+  const matches = digits ? ws.filter(w => normalizeWalletPhone(w.phone) === digits) : [];
+  const sameKind = matches.find(w => {
+    if ((w.providerType || inferWalletProvider(w)) !== provider) return false;
+    if (provider !== 'instapay') return true;
+    const oldBank = normBotText(w.bankName || '');
+    const oldLabel = normBotText(w.label || '');
+    return oldBank === normBotText(bank) || (!!normBotText(bank) && oldLabel.includes(normBotText(bank)));
+  });
+  if (sameKind) return toast(provider === 'instapay' ? 'هذا الرقم مضاف بالفعل لإنستا باي على البنك نفسه' : 'هذا الرقم مضاف بالفعل لنفس نوع الخط أو المحفظة');
+  if (matches.length) {
+    const existingLabels = matches.map(w => (w.providerType === 'instapay' || /انستا.?باي/i.test(w.label || '') ? 'إنستا باي' + (w.bankName ? ' — ' + w.bankName : '') : (w.label || w.phone))).join('، ');
+    const newLabel = providerLabel + (provider === 'instapay' ? ' — ' + bank : '');
+    if (!confirm('⚠️ الرقم ' + digits + ' مضاف بالفعل: ' + existingLabels + '. هل تريد إضافته كخدمة مختلفة (' + newLabel + ')؟')) return;
+  }
   const wid = 'w_' + Date.now().toString(36);
   ws.push({
     id: wid,
-    phone: r.phone,
-    providerType: r.providerType,
-    customProvider: r.providerType === 'custom' ? r.customProvider.trim() : '',
-    bank: r.providerType === 'instapay' ? r.bank : '',
-    bankOther: r.providerType === 'instapay' ? r.bankOther : '',
-    label: (r.label || r.customProvider || r.phone).trim(),
+    phone: digits || String(r.phone || '').trim(),
+    label: (r.label || (provider === 'instapay' ? providerLabel + ' — ' + bank : providerLabel)).trim(),
+    providerType: provider,
+    bankName: bank,
     openingBalance: parseFloat(r.opening) || 0,
     transactionLimit: parseFloat(r.transactionLimit) || 0,
     dailyLimit: parseFloat(r.dailyLimit) || 0,
@@ -1739,7 +1718,7 @@ async function addWalletModal() {
   if (!state.settings.activeWalletId) state.settings.activeWalletId = wid;
   syncTotalPhoneOpening();
   await persist('settings');
-  audit('wallet-add', 'إضافة رقم محفظة: ' + r.phone + ' — ' + r.label);
+  audit('wallet-add', 'إضافة رقم محفظة: ' + digits + ' — ' + (r.label || providerLabel));
   toast('تمت إضافة رقم المحفظة بنجاح ✓');
   render();
 }
@@ -1748,22 +1727,37 @@ async function editWalletModal(wid) {
   const ws = getWallets().slice();
   const w = ws.find(x => x.id === wid);
   if (!w) return;
-  const fields = walletTypeFields(w);
-  fields.push(
-    { k: 'label', label: 'اسم الخط أو المحفظة', value: w.label },
+  const providerOptions = [
+    { value: 'vodafone', label: 'فودافون كاش' }, { value: 'etisalat', label: 'إي آند موني (اتصالات)' },
+    { value: 'orange', label: 'أورنج كاش' }, { value: 'we', label: 'WE Pay' },
+    { value: 'instapay', label: 'إنستا باي' }, { value: 'custom', label: 'نوع آخر — اكتب الاسم' }
+  ];
+  const fields = [
+    { k: 'provider', label: 'نوع الخط أو المحفظة', type: 'select', value: w.providerType || inferWalletProvider(w), options: providerOptions, className: 'wallet-provider-select', required: true },
+    { k: 'customProvider', label: 'اسم النوع الآخر', value: w.customProvider || (inferWalletProvider(w) === 'custom' ? w.label : ''), showWhen: { key: 'provider', value: 'custom' } },
+    { k: 'bankName', label: 'اسم البنك المرتبط بإنستا باي', value: w.bankName || '', required: true, showWhen: { key: 'provider', value: 'instapay' } },
+    { k: 'phone', label: 'رقم الهاتف (11 رقمًا)', value: w.phone, inputmode: 'numeric', pattern: '[0-9٠-٩۰-۹]{11}', maxlength: 11, required: true },
+    { k: 'label', label: 'اسم المحفظة / الشبكة', value: w.label },
     { k: 'opening', label: 'الرصيد الافتتاحي للحساب أو المحفظة', type: 'number', value: w.openingBalance },
-    { k: 'transactionLimit', label: 'حد العملية الواحدة بالجنيه (0 = بدون حد مسجل)', type: 'number', value: w.transactionLimit || 0 },
-    { k: 'dailyLimit', label: 'الحد اليومي بالجنيه (0 = بدون حد مسجل)', type: 'number', value: w.dailyLimit },
+    { k: 'transactionLimit', label: 'حد العملية الواحدة (0 = بدون حد مسجل)', type: 'number', value: w.transactionLimit || 0 },
+    { k: 'dailyLimit', label: 'الحد اليومي بالجنيه (0 = بدون حد)', type: 'number', value: w.dailyLimit },
     { k: 'monthlyLimit', label: 'الحد الشهري بالجنيه (0 = بدون حد)', type: 'number', value: w.monthlyLimit }
-  );
-  const r = await askModal('تعديل رقم المحفظة', fields, 'حفظ', function(value) { return validateWalletDetails(value, wid); });
-  if (!r) return;
-  w.phone = r.phone;
-  w.providerType = r.providerType;
-  w.customProvider = r.providerType === 'custom' ? r.customProvider.trim() : '';
-  w.bank = r.providerType === 'instapay' ? r.bank : '';
-  w.bankOther = r.providerType === 'instapay' ? r.bankOther : '';
-  w.label = (r.label || r.customProvider || r.phone).trim();
+  ];
+  const r = await askModal('تعديل رقم المحفظة', fields, 'حفظ');
+  if (!r || !r.phone) return;
+  const provider = r.provider || '';
+  const digits = normalizeWalletPhone(r.phone);
+  if (!provider || (provider !== 'custom' && digits.length !== 11)) return toast('اختار نوع الخط وتأكد أن رقم الهاتف 11 رقمًا');
+  if (provider === 'instapay' && !String(r.bankName || '').trim()) return toast('⚠️ اكتب اسم بنك إنستا باي');
+  const duplicate = ws.find(x => x.id !== wid && digits && normalizeWalletPhone(x.phone) === digits && (x.providerType || inferWalletProvider(x)) === provider && (provider !== 'instapay' || normBotText(x.bankName || x.label || '').includes(normBotText(r.bankName || ''))));
+  if (duplicate) return toast('هذا الرقم مضاف بالفعل لنفس نوع الخدمة والبنك');
+  const otherMatches = ws.filter(x => x.id !== wid && digits && normalizeWalletPhone(x.phone) === digits);
+  if (otherMatches.length && !confirm('⚠️ هذا الرقم مسجل على خدمة أخرى. هل تريد حفظه هنا أيضًا؟')) return;
+  w.phone = digits || String(r.phone || '').trim();
+  w.providerType = provider;
+  w.customProvider = provider === 'custom' ? String(r.customProvider || '').trim() : '';
+  w.bankName = provider === 'instapay' ? String(r.bankName || '').trim() : '';
+  w.label = (r.label || r.phone).trim();
   w.openingBalance = parseFloat(r.opening) || 0;
   w.transactionLimit = parseFloat(r.transactionLimit) || 0;
   w.dailyLimit = parseFloat(r.dailyLimit) || 0;
@@ -1885,12 +1879,12 @@ async function addMainTxn() {
   // فحص حدود المحفظة اليومية والشهرية مع المنع التام والتنبيه
   if (td.phone !== 0 && wallet) {
     const wStat = getWalletStats(wallet.id);
-    const tLim = Number(wallet.transactionLimit) || 0;
+    const oneLimit = Number(wallet.transactionLimit) || 0;
     const dLim = Number(wallet.dailyLimit) || 0;
     const mLim = Number(wallet.monthlyLimit) || 0;
 
-    if (tLim > 0 && amt > tLim + 0.001) {
-      state.err = '⚠️ تعذر تنفيذ العملية: المبلغ يتجاوز حد العملية الواحدة المسجل لهذا الحساب (' + fmt(tLim) + ' ' + CUR + ').';
+    if (oneLimit > 0 && amt > oneLimit + 0.001) {
+      state.err = '⚠️ تعذر تنفيذ العملية: مبلغ العملية (' + fmt(amt) + ' ' + CUR + ') يتجاوز حد العملية الواحدة المسجل لهذا الحساب (' + fmt(oneLimit) + ' ' + CUR + '). العملية لم تُنفّذ.';
       return render();
     }
     if (dLim > 0 && (wStat.usedToday + amt) > dLim + 0.001) {
@@ -2734,18 +2728,7 @@ function viewReview() {
     const wallet = getWallets().find(w => w.id === p.walletId);
     return '<div class="card review-item" style="border-inline-start:4px solid var(--brass);"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;"><strong>' + (p.type === 'سحب' || p.type === 'ايداع' ? merchantTxnLabel(p.type, true) : 'حدد نوع العملية واتجاه الفلوس') + '</strong><span class="num">' + (p.amount ? fmt(p.amount) + ' ' + CUR : 'المبلغ غير محدد') + '</span></div><div style="font-size:12px;color:var(--ink-soft);margin:6px 0 10px;">' + esc(wallet ? wallet.label + ' · ' + wallet.phone : 'اختار الخط المستلم / المحوّل منه أولًا') + ' · وصلت ' + esc(curTimeStr(p.createdAt)) + '</div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn-save green" data-act="editImport" data-id="' + esc(p.id) + '">تعديل البيانات</button><button class="btn-save green" data-act="confirmImport" data-id="' + esc(p.id) + '">راجع وسجّل العملية</button><button class="btn-save danger" data-act="deleteImport" data-id="' + esc(p.id) + '">حذف</button></div></div>';
   }).join('') : '<div class="card"><p style="margin:0;color:var(--ink-soft);">مفيش تحويلات معلّقة. الصق نص الرسالة هنا أو فعّل تنبيهات أندرويد.</p></div>';
-  const notificationParams = new URLSearchParams(location.search);
-  const incomingAccess = notificationParams.get('notificationAccess');
-  const incomingAppNotifications = notificationParams.get('appNotifications');
-  if (incomingAccess === 'on' || incomingAccess === 'off') lsSet('wl:androidNotificationAccess', incomingAccess);
-  if (incomingAppNotifications === 'on' || incomingAppNotifications === 'off') lsSet('wl:androidAppNotifications', incomingAppNotifications);
-  const accessStatus = lsGet('wl:androidNotificationAccess');
-  const appNotificationStatus = lsGet('wl:androidAppNotifications');
-  const accessLabel = accessStatus === 'on' ? 'مفعّل ✓' : accessStatus === 'off' ? 'غير مفعّل' : 'لم يتم الفحص بعد';
-  const appNotificationLabel = appNotificationStatus === 'on' ? 'مسموح ✓' : appNotificationStatus === 'off' ? 'غير مسموح' : 'لم يتم الفحص بعد';
-  const androidStatus = '<div role="status" aria-live="polite" style="margin-top:12px;padding:12px;border-radius:12px;background:var(--cream,#f6f1e4);font-size:13px;"><div>وصول قراءة الإشعارات: <strong>' + accessLabel + '</strong></div><div>تنبيهات محفظتي برو: <strong>' + appNotificationLabel + '</strong></div><div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">الحالة تتحدث بعد فحص الإذن من الزر.</div></div>';
-  const manualNotificationMode = new URLSearchParams(location.search).get('notificationCapture') === 'manual';
-  const androidButton = /Android/i.test(navigator.userAgent) ? (manualNotificationMode ? '<p style="font-size:12px;color:var(--ink-soft);">هذه نسخة الاختبار اليدوية؛ لا تقرأ إشعارات التطبيقات. انسخ رسالة التحويل والصقها هنا للمراجعة.</p>' : androidStatus + '<a class="btn-save dark" style="display:block;text-align:center;text-decoration:none;margin-top:8px;" href="intent://notifications/access#Intent;scheme=mohafzatypro;S.browser_fallback_url=https%3A%2F%2Fmohafzatypro.com%2Fandroid-notification-help.html;end">فتح إعداد وصول الإشعارات في Android</a><p style="font-size:12px;color:var(--ink-soft);">اختر محفظتي برو وفعّل الوصول، ثم ارجع للتطبيق. لو تعذّر فتح الإعدادات ستظهر لك خطوات الربط اليدوي.</p>') : /iPhone|iPad|iPod/i.test(navigator.userAgent) ? '<p style="font-size:12px;color:var(--ink-soft);">على iPhone: انسخ نص رسالة التحويل من تطبيق الرسائل والصقه هنا؛ iOS لا يسمح للتطبيق بقراءة الرسائل تلقائيًا.</p>' : '<p style="font-size:12px;color:var(--ink-soft);">انسخ نص رسالة التحويل أو الصقه هنا لإضافته إلى قائمة المراجعة.</p>';
+  const androidButton = /Android/i.test(navigator.userAgent) ? '<a class="btn-save dark" style="display:block;text-align:center;text-decoration:none;margin-top:8px;" href="mohafzatypro://notifications/access">لمستخدمي APK أندرويد: تفعيل إشعارات التحويل</a><p style="font-size:12px;color:var(--ink-soft);">الإذن يتيح فحص إشعارات التطبيقات على هذا الجهاز محليًا لاكتشاف التحويلات فقط. اضغط تنبيه محفظتي برو لمراجعتها؛ لن تُسجَّل قبل تأكيدك.</p>' : /iPhone|iPad|iPod/i.test(navigator.userAgent) ? '<p style="font-size:12px;color:var(--ink-soft);">على iPhone: انسخ نص رسالة التحويل من تطبيق الرسائل والصقه هنا؛ iOS لا يسمح للتطبيق بقراءة الرسائل تلقائيًا.</p>' : '<p style="font-size:12px;color:var(--ink-soft);">انسخ نص رسالة التحويل أو الصقه هنا لإضافته إلى قائمة المراجعة.</p>';
   return '<section><div class="card"><h3>مراجعة تحويل من رسالة</h3><p style="margin:0 0 10px;color:var(--ink-soft);font-size:13px;">الصق الرسالة وسيحاول التطبيق استخراج المبلغ ونوع الحركة تلقائيًا. راجع البيانات والخط قبل التسجيل؛ نص الرسالة لا يُحفظ ولا يُزامن.</p><div class="field"><label for="reviewSms">الصق نص رسالة التحويل</label><textarea id="reviewSms" rows="4" data-bind="reviewText" placeholder="الصق الرسالة هنا…" style="width:100%;resize:vertical;">' + esc(state.reviewText) + '</textarea></div><button class="btn-save dark" data-act="parseImport">استخراج المبلغ المقترح</button><div class="field-row" style="margin-top:12px;"><div class="field"><label>المبلغ (راجعه)</label><input type="number" min="0" step="0.01" inputmode="decimal" data-bind="reviewDraft.amount" value="' + esc(state.reviewDraft.amount) + '"></div><div class="field"><label>حركة المحفظة بالنسبة للمحل</label><select data-bind="reviewDraft.type"><option value="">اختار اتجاه الحركة</option><option value="سحب"' + (state.reviewDraft.type === 'سحب' ? ' selected' : '') + '>' + merchantTxnLabel('سحب', true) + '</option><option value="ايداع"' + (state.reviewDraft.type === 'ايداع' ? ' selected' : '') + '>' + merchantTxnLabel('ايداع', true) + '</option></select></div></div><div class="field"><label>الخط المستلم / المحوّل منه</label><select data-bind="reviewDraft.walletId">' + walletSelect + '</select></div><button class="btn-save green" data-act="' + (state.reviewEditId ? 'updateImport' : 'queueImport') + '">' + (state.reviewEditId ? 'حفظ التعديلات' : 'إضافة لقائمة المراجعة') + '</button>' + androidButton + '</div><h3 style="margin:16px 0 8px;">العمليات المعلّقة (' + pending.length + ')</h3>' + queue + '</section>';
 }
 
@@ -2755,6 +2738,7 @@ function normalizeTransferDigits(text) {
 function parseTransferNotice(text) {
   const normalized = normalizeTransferDigits(text);
   const lower = normalized.toLowerCase();
+  const meaningText = normBotText(lower);
   const amountWords = /(مبلغ|بقيمة|بمبلغ|قيمة|قدر|اجمالي|إجمالي|amount|total|sum)/i;
   const currency = /(?:جنيه(?:اً|ًا)?|ج\.?م\.?|EGP|LE\.?|L\.E\.)/i;
   const blocked = /(رقم\s*(?:الهاتف|الموبايل|الحساب|المرجع|العملية|التحويل)|مرجع|reference|\bref\b|\bphone\b|\baccount\b)/i;
@@ -2776,10 +2760,9 @@ function parseTransferNotice(text) {
   }
   candidates.sort((a, b) => b.score - a.score || a.index - b.index);
   const amount = candidates.length ? candidates[0].value : 0;
-  const meaningText = normBotText(lower);
   let type = '';
-  if (/(تم استلام|تم استلم|استلمت|وصلك|وارد|استقبلت|اضافه رصيد|received|credited|deposit received)/i.test(meaningText)) type = 'سحب';
-  else if (/(تم تحويل|تحويل مبلغ|تم ارسال|تم ايداع|ايداع ناجح|خصم|صادر|ارسلت|تم سحب|sent|debited|withdrawn)/i.test(meaningText)) type = 'ايداع';
+  if (/تم\s+استلام|تم\s+استلم|استلمت|وصلك|وارد|استقبلت|اضافه\s+رصيد|received|credited|deposit\s+received/i.test(meaningText)) type = 'سحب';
+  else if (/تم\s+تحويل|تحويل\s+مبلغ|تم\s+ارسال|تم\s+ايداع|ايداع\s+ناجح|خصم|صادر|ارسلت|تم\s+سحب|sent|debited|withdrawn/i.test(meaningText)) type = 'ايداع';
   return { amount: Number.isFinite(amount) && amount > 0 ? round2(amount) : 0, type: type };
 }
 function pendingImportsKey() {
@@ -4037,61 +4020,53 @@ function sectionBoxes(T) {
     return '<div class="box"><div class="l"><span>' + esc(a.name) + '</span><span><i class="ed" data-act="renSection" data-id="' + a.id + '" title="تعديل الاسم">✏️</i><i class="ed" data-act="delSection" data-id="' + a.id + '" title="حذف">✕</i></span></div><div class="v num">' + fmt(T.acctB[a.id] || 0) + '</div></div>';
   }).join('') + '</div>';
 }
-function askModal(title, fields, ok, validator, onProviderChange) {
+function askModal(title, fields, ok) {
   return new Promise(function (resolve) {
     const ov = document.createElement('div');
     ov.dir = 'rtl'; ov.className = 'mdl-ov noprint';
     ov.innerHTML = '<div class="mdl"><h3>' + esc(title) + '</h3>' + fields.map(function (f, i) {
-      const isSelect = f.type === 'select';
-      const input = isSelect
-        ? '<select id="mf' + i + '" data-wallet-field="' + esc(f.k) + '"' + (f.k === 'providerType' ? ' class="wallet-provider-select" aria-describedby="walletProviderError"' : '') + '>' + (f.options || '') + '</select>'
-        : '<input id="mf' + i + '" type="' + (f.type || 'text') + '" ' + (f.type === 'number' ? 'step="0.01" ' + (f.neg ? '' : 'inputmode="decimal" ') : '') + (f.inputmode ? 'inputmode="' + f.inputmode + '" ' : '') + (f.maxlength ? 'maxlength="' + f.maxlength + '" ' : '') + (f.pattern ? 'pattern="' + f.pattern + '" ' : '') + 'value="' + esc(String(f.value == null ? '' : f.value)) + '">';
-      const hidden = f.hiddenUnless ? ' data-wallet-conditional="' + esc(f.hiddenUnless) + '" data-wallet-depends-on="' + esc(f.dependsOn || 'providerType') + '" style="display:none"' : '';
-      return '<div class="mdl-field"' + hidden + (f.inputmode === 'numeric' ? ' data-wallet-phone-field="1"' : '') + '><label for="mf' + i + '">' + esc(f.label) + '</label>' + input + '</div>';
-    }).join('') + (fields.some(function(f) { return f.k === 'providerType'; }) ? '<div class="wallet-provider-error" id="walletProviderError" role="alert" aria-live="assertive">⚠️ اختار نوع الخط أو المحفظة قبل الحفظ.</div>' : '') + '<div class="mdl-b"><button class="mdl-ok">' + (ok || 'حفظ') + '</button><button class="mdl-x">إلغاء</button></div></div>';
+      const hidden = f.showWhen ? ' style="display:none"' : '';
+      let control;
+      if (f.type === 'select') {
+        control = '<select id="mf' + i + '" class="' + esc(f.className || '') + '" ' + (f.required ? 'required ' : '') + '>' + (f.options || []).map(function(o) {
+          const value = typeof o === 'string' ? o : o.value;
+          const label = typeof o === 'string' ? o : o.label;
+          return '<option value="' + esc(value) + '"' + (String(value) === String(f.value == null ? '' : f.value) ? ' selected' : '') + '>' + esc(label) + '</option>';
+        }).join('') + '</select>';
+      } else {
+        control = '<input id="mf' + i + '" type="' + (f.type || 'text') + '" ' + (f.type === 'number' ? 'step="0.01" ' + (f.neg ? '' : 'inputmode="decimal" ') : '') + (f.inputmode ? 'inputmode="' + esc(f.inputmode) + '" ' : '') + (f.pattern ? 'pattern="' + esc(f.pattern) + '" ' : '') + (f.maxlength ? 'maxlength="' + Number(f.maxlength) + '" ' : '') + (f.required ? 'required ' : '') + (f.placeholder ? 'placeholder="' + esc(f.placeholder) + '" ' : '') + 'value="' + esc(String(f.value == null ? '' : f.value)) + '">';
+      }
+      return '<div class="mdl-field" data-field="' + esc(f.k) + '"' + (f.role ? ' data-role="' + esc(f.role) + '"' : '') + hidden + '><label for="mf' + i + '">' + esc(f.label) + '</label>' + control + '</div>';
+    }).join('') + '<div class="wallet-provider-error" id="modalFormErr" role="alert"></div><div class="mdl-b"><button class="mdl-ok">' + (ok || 'حفظ') + '</button><button class="mdl-x">إلغاء</button></div></div>';
     document.body.appendChild(ov);
-    const first = ov.querySelector('input,select');
-    setTimeout(function () { first.focus(); if (first.select) first.select(); }, 60);
+    function updateConditionalFields() {
+      fields.forEach(function(f) {
+        if (!f.showWhen) return;
+        const parentIndex = fields.findIndex(function(item) { return item.k === f.showWhen.key; });
+        const parent = parentIndex >= 0 ? ov.querySelector('#mf' + parentIndex) : null;
+        const parentWrap = parent && parent.closest('.mdl-field');
+        const wrap = ov.querySelector('[data-field="' + f.k + '"]');
+        wrap.style.display = parent && (!parentWrap || parentWrap.style.display !== 'none') && parent.value === f.showWhen.value ? '' : 'none';
+      });
+    }
+    fields.forEach(function(f, i) { if (f.type === 'select') ov.querySelector('#mf' + i).addEventListener('change', function() { updateConditionalFields(); if (typeof f.onChange === 'function') f.onChange(ov, ov.querySelector('#mf' + i).value); }); });
+    fields.forEach(function(f, i) {
+      const el = ov.querySelector('#mf' + i);
+      if (!el || f.inputmode !== 'numeric') return;
+      el.addEventListener('input', function() {
+        el.value = el.value.replace(/[٠-٩]/g, function(d) { return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)); }).replace(/[۰-۹]/g, function(d) { return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)); }).replace(/\D/g, '').slice(0, Number(f.maxlength) || 11);
+      });
+    });
+    const first = ov.querySelector('select, input');
+    setTimeout(function () { if (first) first.focus(); }, 60);
     const done = function (v) { ov.remove(); resolve(v); };
     ov.querySelector('.mdl-x').onclick = function () { done(null); };
     ov.addEventListener('click', function (e) { if (e.target === ov) done(null); });
-    const hasWalletType = fields.some(function(f) { return f.k === 'providerType'; });
-    const providerField = fields.findIndex(function(f) { return f.k === 'providerType'; });
-    const providerSelect = hasWalletType ? ov.querySelector('#mf' + providerField) : null;
-    function updateWalletConditionalFields() {
-      ov.querySelectorAll('[data-wallet-conditional]').forEach(function(el) {
-        const dependency = el.getAttribute('data-wallet-depends-on') || 'providerType';
-        const controller = ov.querySelector('[data-wallet-field="' + dependency + '"]');
-        const visible = !!controller && el.getAttribute('data-wallet-conditional') === controller.value;
-        el.style.display = visible ? '' : 'none';
-        const control = el.querySelector('input,select');
-        if (control) { control.disabled = !visible; control.required = visible; }
-      });
-    }
-    if (providerSelect) {
-      providerSelect.addEventListener('change', updateWalletConditionalFields);
-      providerSelect.addEventListener('change', function() {
-        const warning = ov.querySelector('#walletProviderError');
-        if (warning) warning.style.display = 'none';
-        const label = ov.querySelector('[data-wallet-phone-field] label');
-        if (label) label.textContent = providerSelect.value === 'instapay' ? 'رقم الموبايل المرتبط بإنستاباي (11 رقم)' : 'رقم الموبايل (11 رقم)';
-        if (onProviderChange) onProviderChange(providerSelect.value);
-      });
-      updateWalletConditionalFields();
-    }
-    ov.querySelectorAll('[data-wallet-field]').forEach(function(control) {
-      control.addEventListener('change', updateWalletConditionalFields);
-    });
     const submit = function () {
-      if (hasWalletType && providerSelect && !providerSelect.value) {
-        const warning = ov.querySelector('#walletProviderError');
-        if (warning) warning.style.display = 'block';
-        providerSelect.focus();
-        return;
-      }
       const o = {};
-      fields.forEach(function (f, i) { o[f.k] = ov.querySelector('#mf' + i).value.trim(); });
-      if (validator && validator(o) === false) return;
+      fields.forEach(function (f, i) { const el = ov.querySelector('#mf' + i); o[f.k] = el ? String(el.value || '').trim() : ''; });
+      const invalid = fields.find(function(f, i) { const el = ov.querySelector('#mf' + i); if (!el || !el.closest('.mdl-field') || el.closest('.mdl-field').style.display === 'none') return false; return f.required && !o[f.k]; });
+      if (invalid) { const err = ov.querySelector('#modalFormErr'); err.textContent = '⚠️ ' + invalid.label; err.style.display = 'block'; const target = ov.querySelector('#mf' + fields.findIndex(function(f) { return f.k === invalid.k; })); if (target) target.focus(); return; }
       done(o);
     };
     ov.querySelector('.mdl-ok').onclick = submit;
@@ -4440,174 +4415,63 @@ function botHasAll(n, groups) {
   return groups.every(g => botHasAny(n, g));
 }
 
-function botReply(text, choices, sources) {
-  return { text: text, choices: choices || [], sources: sources || [] };
-}
-function botProviderId(text) {
-  const n = normBotText(text);
-  if (botHasAny(n, ['فودافون', 'vodafone'])) return 'vodafone';
-  if (botHasAny(n, ['اتصالات', 'اي اند', 'e money', 'eand money', 'etisalat'])) return 'etisalat';
-  if (botHasAny(n, ['اورنج', 'orange'])) return 'orange';
-  if (botHasAny(n, ['انستاباي', 'انستا باي', 'instapay'])) return 'instapay';
-  if (botHasAny(n, ['وي باي', 'we pay', 'شبكه وي', 'خط وي', 'وي'])) return 'we';
-  return '';
-}
-function botWalletProvider(w) {
-  if (w.providerType && w.providerType !== 'custom') return w.providerType;
-  const label = normBotText([w.customProvider, w.label].filter(Boolean).join(' '));
-  if (botHasAny(label, ['فودافون', 'vodafone'])) return 'vodafone';
-  if (botHasAny(label, ['اتصالات', 'اي اند', 'e money', 'eand money', 'etisalat'])) return 'etisalat';
-  if (botHasAny(label, ['اورنج', 'orange'])) return 'orange';
-  if (botHasAny(label, ['انستاباي', 'انستا باي', 'instapay'])) return 'instapay';
-  if (botHasAny(label, ['وي باي', 'we pay', 'شبكه وي'])) return 'we';
-  return w.providerType === 'custom' ? ('custom:' + (w.customProvider || w.label || 'نوع مخصص')) : 'other';
-}
-function botProviderLabel(id) {
-  return ({ vodafone:'فودافون كاش', etisalat:'اتصالات كاش / e& money', orange:'أورنج كاش', we:'WE Pay', instapay:'إنستاباي' })[id] || String(id || 'نوع غير محدد').replace(/^custom:/, '');
-}
-function botWalletCountAnswer(n, wallets) {
-  const countWords = ['عدد الخطوط','عدد المحافظ','الخطوط المضافه','المحافظ المضافه','كام خط','كم خط','عدد الخط','عدد المحفظ','خط مضاف','محفظه مضافه'];
-  if (!botHasAny(n, countWords)) return null;
-  const provider = botProviderId(n);
-  if (provider) {
-    const count = wallets.filter(w => botWalletProvider(w) === provider).length;
-    return '📱 عندك **' + count + '** ' + botProviderLabel(provider) + (count === 1 ? ' مسجل في الدفتر.' : ' مسجلين في الدفتر.');
-  }
-  const counts = {};
-  ['vodafone','etisalat','orange','we','instapay'].forEach(id => counts[id] = 0);
-  wallets.forEach(w => {
-    const id = botWalletProvider(w);
-    counts[id] = (counts[id] || 0) + 1;
-  });
-  const custom = Object.keys(counts).filter(id => id.indexOf('custom:') === 0 || id === 'other');
-  let lines = ['إجمالي الخطوط والمحافظ: **' + wallets.length + '**'];
-  ['vodafone','etisalat','orange','we','instapay'].forEach(id => lines.push(botProviderLabel(id) + ': **' + counts[id] + '**'));
-  custom.forEach(id => lines.push(botProviderLabel(id) + ': **' + counts[id] + '**'));
-  return '📱 **عدد الخطوط والمحافظ المضافة في الدفتر:**\n• ' + lines.join('\n• ');
-}
-function botLimitData(provider) {
-  return {
-    vodafone: {
-      text:'حدود فودافون كاش المنشورة من فودافون: **60,000 جنيه يوميًا** و**200,000 جنيه شهريًا**. والحد الأقصى للتحويل الواحد المنشور هو 60,000 جنيه. الحدود التي تظهر في دفتر محفظتي برو هي حدود أدخلها المستخدم لمتابعة شغله، وليست قراءة مباشرة من محفظة فودافون. راجع نوع العملية وحالة محفظتك قبل تنفيذها.',
-      sources:[{label:'فودافون كاش — الحدود والخدمات',url:'https://web.vodafone.com.eg/en/vodafone-cash'}]
-    },
-    orange: {
-      text:'الحدود المنشورة لأورنج كاش للأفراد: **60,000 جنيه يوميًا** و**200,000 جنيه شهريًا**. المحافظ الجديدة قد تبدأ بحد **10,000 يوميًا و60,000 شهريًا لأول 90 يومًا**. حد السحب النقدي يختلف حسب القناة. راجع حالة محفظتك قبل التنفيذ.',
-      sources:[{label:'أورنج كاش — الحدود الرسمية',url:'https://www.orange.eg/ar/services/Orange-financial-services'}]
-    },
-    we: {
-      text:'حدود WE Pay المنشورة: للمحافظ الحالية **60,000 جنيه يوميًا و200,000 شهريًا**. المحافظ الجديدة من 6 مايو 2025 تبدأ بحد **10,000 يوميًا و60,000 شهريًا لأول 90 يومًا** ثم تُحدّث وفق الشروط المنشورة. حد الرصيد 200,000 جنيه.',
-      sources:[{label:'WE Pay — الحدود الرسمية',url:'https://www.te.eg/web/guest/personal/we-pay'}]
-    },
-    etisalat: {
-      text:'الصفحة الرسمية المنشورة لاتصالات كاش تعرض حدًا يوميًا **30,000 جنيه** وحدًا شهريًا **100,000 جنيه**، وحد رصيد **100,000 جنيه**. وقد تختلف الحدود بحسب تحديثات الخدمة ونوع العملية؛ راجع تطبيق e& money أو خدمة العملاء قبل الاعتماد على الرقم.',
-      sources:[{label:'e& Cash — الحدود والأكواد المنشورة',url:'https://www.etisalat.eg/StaticFiles/portal/etisalat/pages/services/etisalat_cash_en.html'}]
-    },
-    instapay: {
-      text:'حدود إنستاباي المنشورة على شبكة المدفوعات اللحظية: **70,000 جنيه للعملية الواحدة**، **120,000 جنيه يوميًا**، و**400,000 جنيه شهريًا لكل بنك مسجل في التطبيق**.',
-      sources:[{label:'البنك المركزي المصري — شبكة المدفوعات اللحظية',url:'https://www.cbe.org.eg/en/payment-systems-and-services/instant-payment-network'}]
-    }
-  }[provider] || null;
-}
-function botCentralWalletLimitAnswer() {
-  return botReply('الحد العام المنشور من البنك المركزي لمحافظ الهاتف المحمول للأفراد هو **30,000 جنيه يوميًا و100,000 جنيه شهريًا**. بعض صفحات الشركات تعرض حدودًا مختلفة لخدمات أو قنوات معينة، لذلك اعرض حد الشركة وحد البنك المركزي كلٌّ على حدة وتأكد من الحد المطبق على محفظتك قبل العملية.', [], [
-    {label:'البنك المركزي المصري — محافظ الهاتف المحمول',url:'https://www.cbe.org.eg/ar/payment-systems-and-services/payment-services/mobile-wallet'}
-  ]);
-}
-function botCodeChoices(provider) {
-  if (provider === 'instapay') return botReply('إنستاباي يُستخدم من التطبيق. لو تقصد حاجة محددة اختارها:', [
-    {label:'التحويل من إنستاباي',query:'طريقة التحويل من تطبيق إنستاباي'},
-    {label:'عنوان الدفع اللحظي IPA',query:'ما هو عنوان الدفع اللحظي IPA في إنستاباي'},
-    {label:'إضافة حساب بنكي',query:'طريقة إضافة حساب بنكي إلى إنستاباي'}
-  ]);
-  const label = botProviderLabel(provider);
-  return botReply('تقصد كود إيه لـ' + label + '؟ اختار الخدمة:', [
-    {label:'تحويل فلوس',query:'كود تحويل ' + label},
-    {label:'رصيد المحفظة',query:'كود معرفة رصيد ' + label},
-    {label:'سحب أو إيداع',query:'كود سحب وإيداع ' + label},
-    {label:'القائمة الرئيسية',query:'الكود الرئيسي ' + label}
-  ]);
-}
-function botCodeAnswer(n) {
-  if (!botHasAny(n, ['كود','اكواد','code','ussd'])) return null;
-  const provider = botProviderId(n);
-  const action = botHasAny(n, ['تحويل','ابعت','ارسال','فلوس']) ? 'transfer'
-    : botHasAny(n, ['رصيد','استعلام','اعرف كام']) ? 'balance'
-    : botHasAny(n, ['سحب']) ? 'withdraw'
-    : botHasAny(n, ['ايداع','شحن المحفظه']) ? 'deposit'
-    : botHasAny(n, ['رقم سري','باسورد','تفعيل']) ? 'pin'
-    : botHasAny(n, ['رئيسي','القائمه','منيو','الخدمات']) ? 'menu' : '';
-  if (!provider) return botReply('تقصد كود أي خدمة؟ اختار المحفظة أو الشبكة:', [
-    {label:'فودافون كاش',query:'كود فودافون كاش'},
-    {label:'اتصالات كاش / e& money',query:'كود e& money'},
-    {label:'أورنج كاش',query:'كود أورنج كاش'},
-    {label:'WE Pay',query:'كود WE Pay'},
-    {label:'إنستاباي',query:'كود إنستاباي'}
-  ]);
-  if (!action) return botCodeChoices(provider);
-  const data = {
-    vodafone:{transfer:'اطلب `*9*7#` ثم اختار تحويل الأموال واتبع التعليمات.',menu:'اطلب `*9#` لفتح قائمة فودافون كاش.',pin:'لتفعيل الرقم السري حسب صفحة فودافون الرسمية: `*9*5#`.',withdraw:'اطلب `*9#` واتبع قائمة السحب؛ الأكواد الفرعية قد تختلف حسب الخدمة.',deposit:'اطلب `*9#` واتبع قائمة الإيداع أو استخدم منفذ الإيداع.',balance:'اطلب `*9#` وافتح استعلام الرصيد.'},
-    etisalat:{transfer:'كود تحويل الأموال لـ e& money هو `*777*1#`.',menu:'أكواد الخدمات تبدأ بـ `*777#`؛ اختار الخدمة من القائمة.',pin:'خدمات الرقم السري من `*777*8#`.',withdraw:'سحب ATM من `*777*3#`، والسحب من الفرع من `*777*11#`.',deposit:'ابدأ من قائمة `*777#` واتبع خيار إيداع ATM.',balance:'كود الاستعلام عن رصيد المحفظة `*777*4#`.'},
-    orange:{transfer:'افتح قائمة أورنج كاش بالكود `#7115#` ثم اختار **1: تحويل الأموال**.',menu:'الكود الرئيسي لإدارة أورنج كاش هو `#7115#`.',pin:'استخدم قائمة `#7115#` واختر خدمات الرقم السري.',withdraw:'إدارة السحب من قائمة `#7115#`؛ خيارات ATM والمنافذ تختلف حسب القناة.',deposit:'إدارة الإيداع من قائمة `#7115#` واختر خدمة الإيداع المناسبة.',balance:'دليل أورنج كاش المنشور يذكر `#7115*81#` للاستعلام عن الرصيد.'},
-    we:{transfer:'كود تحويل الأموال في WE Pay هو `*7*2#`.',menu:'إدارة الحساب والاستعلام عن الرصيد من `*7*1#`.',pin:'افتح `*7*1#` واتبع خيارات إدارة الحساب.',withdraw:'كود السحب هو `*7*5#`.',deposit:'كود الإيداع هو `*7*6#`.',balance:'إدارة الحساب والاستعلام عن الرصيد من `*7*1#`.'}
-  };
-  const answer = data[provider] && data[provider][action];
-  if (provider === 'instapay') return botReply('إنستاباي لا يعتمد على كود USSD موثق في دليل المساعدة هذا؛ استخدم التطبيق الرسمي. اختار المساعدة المطلوبة:', botCodeChoices(provider).choices, [{label:'إنستاباي — الموقع الرسمي',url:'https://www.instapay.eg/?lang=ar&page_id=2021'}]);
-  const source = provider === 'vodafone'
-    ? {label:'فودافون كاش — خطوات الخدمة',url:'https://web.vodafone.com.eg/en/money-transfer'}
-    : provider === 'orange'
-      ? {label:'أورنج كاش — الموقع الرسمي',url:'https://www.orange.eg/ar/services/Orange-financial-services'}
-      : provider === 'we'
-        ? {label:'WE Pay — الأكواد الرسمية',url:'https://www.te.eg/web/guest/personal/we-pay'}
-        : {label:'e& money — الأكواد الرسمية',url:'https://www.etisalat.eg/portal/pages/services/eand_money_en.html'};
-  return botReply(answer || 'مش لاقي كود موثّق للخدمة دي حاليًا. افتح التطبيق الرسمي أو اختر خدمة تانية.', [], [source]);
-}
 function processBotQuery(rawQuery) {
   const q = String(rawQuery || '').trim();
   if (!q) return 'من فضلك اكتب سؤالك أو اختر أحد الأسئلة السريعة بالأعلى 🤖';
   const n = normBotText(q);
-  const walletsForBot = (typeof getWallets === 'function') ? getWallets() : [];
-  const lineCountAnswer = botWalletCountAnswer(n, walletsForBot);
-  if (lineCountAnswer) return lineCountAnswer;
-  const codeAnswer = botCodeAnswer(n);
-  if (codeAnswer) return codeAnswer;
 
-  const provider = botProviderId(n);
-  const limitQuestion = botHasAny(n, ['حد','حدود','لميت','limit','استخدام']) && botHasAny(n, ['محفظ','خط','فودافون','اتصالات','اي اند','اورنج','وي','انستاباي','instapay']);
-  if (limitQuestion) {
-    const explicitCompany = botHasAny(n, ['الشركه','معلن','الرسمي','رسمي','فودافون بتقول','من الشركه']);
-    const explicitCbe = botHasAny(n, ['البنك المركزي','cbe']);
-    const localQuestion = botHasAny(n, ['في الدفتر','في البرنامج','المسجل','اللي سجلته','عندي','خطوطي','المتبقي']);
-    if (explicitCbe) return botCentralWalletLimitAnswer();
-    if (explicitCompany && provider) {
-      const data = botLimitData(provider);
-      return data ? botReply('📌 ' + data.text + '\n\n*تمت مراجعة الصفحة الرسمية بتاريخ 5 نوفمبر 2026.*', [], data.sources) : botCentralWalletLimitAnswer();
-    }
-    if (localQuestion) {
-      const matching = walletsForBot.filter(w => !provider || botWalletProvider(w) === provider);
-      if (!matching.length) return 'مش مسجل عندك خط من النوع ده في الدفتر.';
-      if (matching.length > 1 && !matching.some(w => n.includes(normBotText(w.label || '')))) {
-        return botReply('عندك أكتر من خط من النوع ده. اختار الخط عشان أقولك الحد والمتبقي:', matching.map(w => ({label:w.label || botProviderLabel(botWalletProvider(w)),query:'الحد المسجل لخط ' + (w.label || w.phone)})));
-      }
-      const wallet = matching.find(w => n.includes(normBotText(w.label || ''))) || matching[0];
-      const st = getWalletStats(wallet.id);
-      return 'حدود **' + esc(wallet.label || wallet.phone) + '** المسجلة في الدفتر: يومي ' + (wallet.dailyLimit > 0 ? fmt(wallet.dailyLimit) + ' جنيه، المتبقي ' + fmt(st.remDaily) : 'غير محدد') + '؛ شهري ' + (wallet.monthlyLimit > 0 ? fmt(wallet.monthlyLimit) + ' جنيه، المتبقي ' + fmt(st.remMonthly) : 'غير محدد') + '. دي حدود متابعة أدخلها المستخدم وليست قراءة مباشرة من الشركة.';
-    }
-    const choices = provider
-      ? [
-          {label:'الحد المعلن من الشركة',query:'الحدود المعلنة من الشركة ' + botProviderLabel(provider)},
-          {label:'الحد العام للبنك المركزي',query:'الحد العام لمحافظ الهاتف من البنك المركزي'},
-          {label:'الحد المسجل في الدفتر',query:'الحد المسجل في الدفتر ' + botProviderLabel(provider)}
-        ]
-      : [
-          {label:'الحد العام للبنك المركزي',query:'الحد العام لمحافظ الهاتف من البنك المركزي'},
-          {label:'حدود فودافون كاش',query:'الحدود المعلنة من الشركة فودافون كاش'},
-          {label:'حدود أورنج كاش',query:'الحدود المعلنة من الشركة أورنج كاش'},
-          {label:'حدود WE Pay',query:'الحدود المعلنة من الشركة WE Pay'},
-          {label:'حدود إنستاباي',query:'الحدود المعلنة من الشركة إنستاباي'},
-          {label:'حدود الخطوط المسجلة عندي',query:'الحدود المسجلة لخطوطي في الدفتر'}
-        ];
-    return botReply('تقصد حدود الشركة المعلنة، الحد العام من البنك المركزي، ولا الحد اللي سجلته في الدفتر؟ اختار واحدة:', choices);
+  const providerCatalog = [
+    { id: 'vodafone', label: 'فودافون كاش', words: ['فودافون', 'vodafone'], source: 'https://static.vodafone.com.eg/en/vodafone-cash' },
+    { id: 'etisalat', label: 'إي آند موني (اتصالات)', words: ['اتصالات', 'اي اند', 'e and', 'etisalat'], source: 'https://www.etisalat.eg/portal/pages/services/eand_money.html' },
+    { id: 'orange', label: 'أورنج كاش', words: ['اورنج', 'orange'], source: 'https://www.orange.eg/ar/services/Orange-financial-services' },
+    { id: 'we', label: 'WE Pay', words: ['وي باي', 'we pay', 'المصريه للاتصالات'], source: 'https://www.te.eg/web/guest/personal/we-pay' },
+    { id: 'instapay', label: 'إنستا باي', words: ['انستا باي', 'انستاباي', 'instapay'], source: 'https://www.cbe.org.eg/ar/payment-systems-and-services/instant-payment-network' }
+  ];
+  const askedCodes = botHasAny(n, ['كود', 'اكواد', 'ussd', 'الكود']);
+  const askedLimits = botHasAny(n, ['حد', 'حدود', 'لمت', 'استهلاك', 'المعلن']);
+  const mentionedProviders = providerCatalog.filter(p => botHasAny(n, p.words));
+  if (askedCodes && !mentionedProviders.length) {
+    return { text: 'تقصد كود أي خدمة؟ اختار الشركة، وأنا أقول لك الكود الرسمي المتاح.', choices: providerCatalog.map(p => ({ label: p.label, query: 'كود ' + p.label })) };
+  }
+  if (askedLimits && !mentionedProviders.length) {
+    return { text: 'الحدود تختلف حسب الشركة ونوع الحساب أو حداثة المحفظة. اختار الخدمة التي تقصدها لأعرض الحد المنشور ومصدره الرسمي.', choices: providerCatalog.map(p => ({ label: p.label, query: 'حدود ' + p.label })) };
+  }
+  if (askedCodes && mentionedProviders.length) {
+    const p = mentionedProviders[0];
+    const codeInfo = {
+      vodafone: 'القائمة الرئيسية لفودافون كاش: *9#. للتحويل: *9*7#.',
+      etisalat: 'قائمة e& money: *777#. للتحويل: *777*1#، والاستعلام عن الرصيد: *777*4#.',
+      orange: 'كود Orange Cash: #115#.',
+      we: 'كود WE Pay: *7#.',
+      instapay: 'إنستا باي يعمل من التطبيق، ولا يوجد كود USSD عام منشور لإجراء التحويل. استخدم تطبيق InstaPay الرسمي.'
+    }[p.id];
+    return { text: '📲 **' + p.label + ':** ' + codeInfo + '\n\nالأكواد قد تتغير؛ راجع صفحة الشركة الرسمية قبل تنفيذ أي عملية.', sources: [{ label: 'المصدر الرسمي', url: p.source }] };
+  }
+  if (askedLimits && mentionedProviders.length) {
+    const p = mentionedProviders[0];
+    const limitInfo = {
+      vodafone: 'الحد المعلن للمعاملات: 60,000 جنيه يوميًا و200,000 جنيه شهريًا. راجع تطبيق أنا فودافون أو الشركة؛ قد تختلف الحدود المعروضة لحسابك.',
+      etisalat: 'لم أجد في صفحة e& الرسمية المنشورة جدولًا عامًا واضحًا للحد اليومي والشهري. لا أريد تخمين رقم؛ راجع تطبيق My e& Egypt أو خدمة العملاء لمعرفة حد محفظتك الحالي. صفحة الشركة تعرض أكواد الخدمات وبعض العروض المؤقتة فقط.',
+      orange: 'للأفراد: الحد اليومي 60,000 جنيه والشهري 200,000 جنيه. المحفظة الجديدة خلال أول 90 يومًا: 10,000 يوميًا و60,000 شهريًا. وتذكر الشركة حدودًا مختلفة لمحافظ الأعمال؛ تأكد من فئة محفظتك.',
+      we: 'للمحافظ الحالية: 60,000 جنيه يوميًا و200,000 شهريًا. للمحافظ الجديدة من 6 مايو 2025: 10,000 يوميًا و60,000 شهريًا أول 90 يومًا، ثم تُحدّث الحدود وفق شروط الشركة.',
+      instapay: 'حدود إنستا باي المعلنة لكل بنك مسجل: 70,000 جنيه للعملية الواحدة، 120,000 جنيه يوميًا، و400,000 جنيه شهريًا.'
+    }[p.id];
+    return { text: '📏 **حدود ' + p.label + ':** ' + limitInfo + '\n\nهذه حدود معلنة وليست قراءة مباشرة من حسابك. حدود الدفتر داخل محفظتي برو تعتمد على الأرقام التي أدخلتها أنت.', sources: [{ label: 'راجع المصدر الرسمي', url: p.source }] };
+  }
+
+  // عدد الخطوط المسجلة في الدفتر، مع توزيعها حسب النوع والبنك.
+  if (botHasAny(n, ['عدد الخطوط', 'كام خط', 'عدد المحافظ', 'كام محفظه', 'الخطوط المضافه', 'الخطوط المسجله', 'محفظه مضافه'])) {
+    const ws = (typeof getWallets === 'function') ? getWallets() : [];
+    const counts = {};
+    ws.forEach(function(w) {
+      const provider = w.providerType || inferWalletProvider(w);
+      const catalogEntry = providerCatalog.find(function(p) { return p.id === provider; });
+      const label = provider === 'custom' ? (String(w.label || 'نوع آخر').split('—')[0].trim() || 'نوع آخر') : (catalogEntry ? catalogEntry.label : 'نوع آخر');
+      counts[label] = (counts[label] || 0) + 1;
+      if (provider === 'instapay' && w.bankName) counts['إنستا باي — ' + w.bankName] = (counts['إنستا باي — ' + w.bankName] || 0) + 1;
+    });
+    const lines = Object.keys(counts).map(function(label) { return '• ' + label + ': ' + counts[label]; });
+    return '📱 **الخطوط والمحافظ المسجلة في الدفتر: ' + ws.length + '**\n' + (lines.length ? lines.join('\n') : 'لا توجد خطوط مضافة حاليًا.') + '\n\nالأعداد هنا من الدفتر الحالي فقط.';
   }
 
   // الاشتراكات غير متاحة حاليًا
@@ -4854,7 +4718,6 @@ let botHistory = [
 
 function formatBotText(txt) {
   let s = esc(txt);
-  s = s.replace(/`([^`]+)`/g, '<code class="bot-code">$1</code>');
   // تحويل markdown bold **text** إلى <b>text</b>
   s = s.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
   // تحويل markdown italic *text* إلى <i>$1</i>
@@ -4881,10 +4744,7 @@ function openBotModal() {
     '👥 مين عليه ديون؟',
     '🔁 إزاي أحول بين الخطوط؟',
     '🔒 إزاي أغير كلمات السر؟',
-    '🖨️ طريقة طباعة إيصال',
-    '📱 كام خط مضاف عندي؟',
-    '🔢 كود تحويل فودافون كاش',
-    '📏 حدود استخدام فودافون'
+    '🖨️ طريقة طباعة إيصال'
   ];
 
   ov.innerHTML = '<div class="bot-box">' +
@@ -4915,15 +4775,9 @@ function openBotModal() {
   const closeBtn = ov.querySelector('#botCloseBtn');
 
   function renderMessages() {
-    msgsDiv.innerHTML = botHistory.map(m =>
-      '<div class="bot-msg ' + m.role + '">' + formatBotText(m.text) +
-      (m.sources && m.sources.length ? '<div class="bot-sources">' + m.sources.map(function(source) { return '<a href="' + esc(source.url) + '" target="_blank" rel="noopener noreferrer">' + esc(source.label) + '</a>'; }).join(' · ') + '</div>' : '') +
-      (m.choices && m.choices.length ? '<div class="bot-choice-list">' + m.choices.map(function(choice) { return '<button type="button" class="bot-choice" data-bot-choice="' + esc(choice.query) + '">' + esc(choice.label) + '</button>'; }).join('') + '</div>' : '') +
-      '</div>'
+    msgsDiv.innerHTML = botHistory.map(m => 
+      '<div class="bot-msg ' + m.role + '">' + formatBotText(m.text) + '</div>'
     ).join('');
-    msgsDiv.querySelectorAll('[data-bot-choice]').forEach(function(button) {
-      button.onclick = function() { handleSend(button.getAttribute('data-bot-choice')); };
-    });
     msgsDiv.scrollTop = msgsDiv.scrollHeight;
   }
 
@@ -4936,9 +4790,8 @@ function openBotModal() {
 
     // استجابة فورية ذكية
     setTimeout(() => {
-      const response = processBotQuery(q);
-      const ans = response && typeof response === 'object' ? response : { text: String(response || '') };
-      botHistory.push({ role: 'bot', text: ans.text || '', choices: ans.choices || [], sources: ans.sources || [] });
+      const ans = processBotQuery(q);
+      botHistory.push({ role: 'bot', text: ans });
       renderMessages();
     }, 120);
   }
@@ -4981,3 +4834,4 @@ addBotFab();
 <div id="thermalReceiptArea"></div>
 </body>
 </html>
+

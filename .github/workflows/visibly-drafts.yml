@@ -1,0 +1,35 @@
+name: Fetch Visibly drafts for review
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: visibly-draft-export
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify importer safety
+        run: python -m unittest discover -s tests -p 'test_visibly_drafts.py' -v
+      - name: Fetch review data
+        run: python scripts/visibly_drafts.py
+        env:
+          VISIBLY_API_KEY: ${{ secrets.VISIBLY_API_KEY }}
+          VISIBLY_SITE_ID: ${{ vars.VISIBLY_SITE_ID }}
+      - name: Save review package
+        uses: actions/upload-artifact@v4
+        with:
+          name: visibly-review-${{ github.run_id }}
+          path: visibly-review/
+          retention-days: 7
+          if-no-files-found: error

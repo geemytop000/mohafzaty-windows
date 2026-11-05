@@ -1522,20 +1522,37 @@ function walletTypeFields(wallet) {
   return [
     { k: 'providerType', label: 'نوع الخط أو المحفظة', type: 'select', value: provider, options: walletProviderOptions(provider) },
     { k: 'customProvider', label: 'اكتب نوع الرقم الآخر', value: w.customProvider || '', hiddenUnless: 'custom' },
-    { k: 'bank', label: 'البنك المرتبط بإنستاباي', type: 'select', value: w.bank || '', options: '<option value="">اختار البنك</option>' + INSTAPAY_BANKS.map(function(b) { return '<option value="' + esc(b) + '"' + (w.bank === b ? ' selected' : '') + '>' + esc(b) + '</option>'; }).join(''), hiddenUnless: 'instapay' },
+    { k: 'bank', label: 'البنك المرتبط بإنستاباي', type: 'select', value: w.bank && INSTAPAY_BANKS.indexOf(w.bank) < 0 ? 'بنك آخر' : (w.bank || ''), options: '<option value="">اختار البنك</option>' + INSTAPAY_BANKS.map(function(b) { return '<option value="' + esc(b) + '"' + ((w.bank === b || (b === 'بنك آخر' && w.bank && INSTAPAY_BANKS.indexOf(w.bank) < 0)) ? ' selected' : '') + '>' + esc(b) + '</option>'; }).join(''), hiddenUnless: 'instapay' },
+    { k: 'bankOther', label: 'اكتب اسم البنك', value: w.bank && INSTAPAY_BANKS.indexOf(w.bank) < 0 ? w.bank : (w.bankOther || ''), hiddenUnless: 'بنك آخر', dependsOn: 'bank' },
     { k: 'phone', label: provider === 'instapay' ? 'رقم الموبايل المرتبط بإنستاباي (11 رقم)' : 'رقم الموبايل (11 رقم)', value: w.phone || '', inputmode: 'numeric', maxlength: 11, pattern: '[0-9٠-٩۰-۹]{11}', requiredDigits: 11 }
   ];
+}
+function walletProviderDescription(w) {
+  if (w.providerType === 'instapay') return 'إنستاباي - ' + (w.bank || w.bankOther || 'بنك غير محدد');
+  if (w.providerType === 'custom') return (w.customProvider || w.label || 'نوع مخصص') + (w.label ? ' (' + w.label + ')' : '');
+  const names = { vodafone: 'فودافون كاش', etisalat: 'اتصالات / e&', orange: 'أورنج كاش', we: 'WE' };
+  return names[w.providerType] || w.label || 'نوع غير محدد';
 }
 function validateWalletDetails(result, editingId) {
   if (!result) return false;
   const provider = result.providerType || '';
   if (!provider) { toast('اختار نوع الخط أو المحفظة'); return false; }
   if (provider === 'custom' && !String(result.customProvider || '').trim()) { toast('اكتب نوع الرقم الآخر'); return false; }
-  if (provider === 'instapay' && !String(result.bank || '').trim()) { toast('اختار البنك المرتبط بإنستاباي'); return false; }
+  if (provider === 'instapay') {
+    if (!String(result.bank || '').trim()) { toast('اختار البنك المرتبط بإنستاباي أو اختر «بنك آخر» واكتب اسمه'); return false; }
+    if (result.bank === 'بنك آخر') {
+      if (!String(result.bankOther || '').trim()) { toast('اكتب اسم البنك'); return false; }
+      result.bank = String(result.bankOther).trim();
+    }
+  }
   const normalized = normalizeWalletNumber(result.phone);
   if (!/^\d{11}$/.test(normalized)) { toast('رقم الموبايل لازم يكون 11 رقم بالضبط'); return false; }
-  const duplicate = getWallets().some(function(w) { return w.id !== editingId && normalizeWalletNumber(w.phone) === normalized; });
-  if (duplicate) { toast('الرقم ده مضاف قبل كده. راجع الخطوط عشان ما يحصلش لخبطة'); return false; }
+  const duplicates = getWallets().filter(function(w) { return w.id !== editingId && normalizeWalletNumber(w.phone) === normalized; });
+  if (duplicates.length) {
+    const descriptions = duplicates.map(walletProviderDescription);
+    const message = 'الرقم ' + normalized + ' مضاف بالفعل إلى:\n• ' + descriptions.join('\n• ') + '\n\nهل تريد إضافته مرة أخرى؟';
+    if (!window.confirm(message)) return false;
+  }
   result.phone = normalized;
   return true;
 }
@@ -1680,6 +1697,7 @@ async function addWalletModal() {
     providerType: r.providerType,
     customProvider: r.providerType === 'custom' ? r.customProvider.trim() : '',
     bank: r.providerType === 'instapay' ? r.bank : '',
+    bankOther: r.providerType === 'instapay' ? r.bankOther : '',
     label: (r.label || r.customProvider || r.phone).trim(),
     openingBalance: parseFloat(r.opening) || 0,
     dailyLimit: parseFloat(r.dailyLimit) || 0,
@@ -1711,6 +1729,7 @@ async function editWalletModal(wid) {
   w.providerType = r.providerType;
   w.customProvider = r.providerType === 'custom' ? r.customProvider.trim() : '';
   w.bank = r.providerType === 'instapay' ? r.bank : '';
+  w.bankOther = r.providerType === 'instapay' ? r.bankOther : '';
   w.label = (r.label || r.customProvider || r.phone).trim();
   w.openingBalance = parseFloat(r.opening) || 0;
   w.dailyLimit = parseFloat(r.dailyLimit) || 0;
@@ -3986,9 +4005,9 @@ function askModal(title, fields, ok, validator) {
     ov.innerHTML = '<div class="mdl"><h3>' + esc(title) + '</h3>' + fields.map(function (f, i) {
       const isSelect = f.type === 'select';
       const input = isSelect
-        ? '<select id="mf' + i + '"' + (f.k === 'providerType' ? ' class="wallet-provider-select" aria-describedby="walletProviderError"' : '') + '>' + (f.options || '') + '</select>'
+        ? '<select id="mf' + i + '" data-wallet-field="' + esc(f.k) + '"' + (f.k === 'providerType' ? ' class="wallet-provider-select" aria-describedby="walletProviderError"' : '') + '>' + (f.options || '') + '</select>'
         : '<input id="mf' + i + '" type="' + (f.type || 'text') + '" ' + (f.type === 'number' ? 'step="0.01" ' + (f.neg ? '' : 'inputmode="decimal" ') : '') + (f.inputmode ? 'inputmode="' + f.inputmode + '" ' : '') + (f.maxlength ? 'maxlength="' + f.maxlength + '" ' : '') + (f.pattern ? 'pattern="' + f.pattern + '" ' : '') + 'value="' + esc(String(f.value == null ? '' : f.value)) + '">';
-      const hidden = f.hiddenUnless ? ' data-wallet-conditional="' + f.hiddenUnless + '" style="display:none"' : '';
+      const hidden = f.hiddenUnless ? ' data-wallet-conditional="' + esc(f.hiddenUnless) + '" data-wallet-depends-on="' + esc(f.dependsOn || 'providerType') + '" style="display:none"' : '';
       return '<div class="mdl-field"' + hidden + (f.inputmode === 'numeric' ? ' data-wallet-phone-field="1"' : '') + '><label for="mf' + i + '">' + esc(f.label) + '</label>' + input + '</div>';
     }).join('') + (fields.some(function(f) { return f.k === 'providerType'; }) ? '<div class="wallet-provider-error" id="walletProviderError" role="alert" aria-live="assertive">⚠️ اختار نوع الخط أو المحفظة قبل الحفظ.</div>' : '') + '<div class="mdl-b"><button class="mdl-ok">' + (ok || 'حفظ') + '</button><button class="mdl-x">إلغاء</button></div></div>';
     document.body.appendChild(ov);
@@ -3998,11 +4017,13 @@ function askModal(title, fields, ok, validator) {
     ov.querySelector('.mdl-x').onclick = function () { done(null); };
     ov.addEventListener('click', function (e) { if (e.target === ov) done(null); });
     const hasWalletType = fields.some(function(f) { return f.k === 'providerType'; });
-    const providerSelect = hasWalletType ? ov.querySelector('#mf0') : null;
+    const providerField = fields.findIndex(function(f) { return f.k === 'providerType'; });
+    const providerSelect = hasWalletType ? ov.querySelector('#mf' + providerField) : null;
     function updateWalletConditionalFields() {
-      const selected = providerSelect ? providerSelect.value : '';
       ov.querySelectorAll('[data-wallet-conditional]').forEach(function(el) {
-        const visible = el.getAttribute('data-wallet-conditional') === selected;
+        const dependency = el.getAttribute('data-wallet-depends-on') || 'providerType';
+        const controller = ov.querySelector('[data-wallet-field="' + dependency + '"]');
+        const visible = !!controller && el.getAttribute('data-wallet-conditional') === controller.value;
         el.style.display = visible ? '' : 'none';
         const control = el.querySelector('input,select');
         if (control) { control.disabled = !visible; control.required = visible; }
@@ -4018,6 +4039,9 @@ function askModal(title, fields, ok, validator) {
       });
       updateWalletConditionalFields();
     }
+    ov.querySelectorAll('[data-wallet-field]').forEach(function(control) {
+      control.addEventListener('change', updateWalletConditionalFields);
+    });
     const submit = function () {
       if (hasWalletType && providerSelect && !providerSelect.value) {
         const warning = ov.querySelector('#walletProviderError');

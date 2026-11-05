@@ -83,9 +83,9 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          gradle --no-daemon clean assembleFullRelease bundleFullRelease
-          cp app/build/outputs/apk/full/release/app-full-release.apk "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
-          cp app/build/outputs/bundle/fullRelease/app-full-release.aab "$GITHUB_WORKSPACE/mohafzaty-pro-android.aab"
+          gradle --no-daemon clean assembleManualRelease bundleManualRelease
+          cp app/build/outputs/apk/manual/release/app-manual-release.apk "$GITHUB_WORKSPACE/mohafzaty-pro-android.apk"
+          cp app/build/outputs/bundle/manualRelease/app-manual-release.aab "$GITHUB_WORKSPACE/mohafzaty-pro-android.aab"
 
       - name: Verify APK and AAB signatures
         run: |

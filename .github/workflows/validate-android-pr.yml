@@ -52,7 +52,9 @@ jobs:
       - name: Upload installable preview APK
         uses: actions/upload-artifact@v4
         with:
-          name: mohafzaty-pro-preview-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: mohafzaty-pro-preview-apks
+          path: |
+            android/app/build/outputs/apk/full/debug/app-full-debug.apk
+            android/app/build/outputs/apk/manual/debug/app-manual-debug.apk
           if-no-files-found: error
           retention-days: 14

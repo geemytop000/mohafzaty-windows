@@ -17,24 +17,40 @@ jobs:
       - name: Get repository files
         uses: actions/checkout@v4
 
-      - name: Render all site icons from shared oval artwork
+      - name: Prepare approved wallet icon
+        run: |
+          cat .github/assets/icon-parts/icon-*.b64 | tr -d '\r\n' | base64 --decode > site/app/icon-transparent-192.png
+          python - <<'PY'
+          import struct
+          path = 'site/app/icon-transparent-192.png'
+          data = open(path, 'rb').read()
+          assert data[:8] == b'\x89PNG\r\n\x1a\n', 'Invalid PNG signature'
+          width, height = struct.unpack('>II', data[16:24])
+          assert (width, height) == (192, 192), f'Unexpected icon dimensions: {width}x{height}'
+          print(f'Validated transparent app icon: {width}x{height}, {len(data)} bytes')
+          PY
+
+      - name: Generate matching web app icons
         run: |
           sudo apt-get update
           sudo apt-get install -y librsvg2-bin
-          rsvg-convert --width=192 --height=192 --format=png site/app/favicon.svg > site/app/icon-192.png
-          rsvg-convert --width=512 --height=512 --format=png site/app/favicon.svg > site/app/icon-512.png
-          rsvg-convert --width=512 --height=512 --format=png site/app/favicon.svg > site/app/icon-maskable-512.png
-          cp site/app/icon-192.png site/app/icon-transparent-192.png
+          cp site/app/icon-transparent-192.png site/app/icon-192.png
           python - <<'PY'
-          import struct
+          import base64
           from pathlib import Path
-          for path, expected in [('site/app/icon-192.png', 192), ('site/app/icon-512.png', 512), ('site/app/icon-maskable-512.png', 512), ('site/app/icon-transparent-192.png', 192)]:
-              data = Path(path).read_bytes()
-              assert data[:8] == b'\x89PNG\r\n\x1a\n', f'Invalid PNG: {path}'
-              width, height = struct.unpack('>II', data[16:24])
-              assert (width, height) == (expected, expected), f'Unexpected dimensions for {path}: {width}x{height}'
-              print(f'Validated {path}: {width}x{height}, {len(data)} bytes')
+          icon = base64.b64encode(Path('site/app/icon-192.png').read_bytes()).decode('ascii')
+          full = f'<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 192 192"><image width="192" height="192" href="data:image/png;base64,{icon}"/></svg>'
+          maskable = f'<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><rect width="512" height="512" fill="#0534A8"/><image x="42" y="42" width="428" height="428" href="data:image/png;base64,{icon}"/></svg>'
+          favicon = f'<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192"><image width="192" height="192" href="data:image/png;base64,{icon}"/></svg>'
+          Path('/tmp/mohafzaty-icon.svg').write_text(full)
+          Path('/tmp/mohafzaty-maskable.svg').write_text(maskable)
+          Path('site/app/favicon.svg').write_text(favicon)
           PY
+          rsvg-convert --width=512 --height=512 --format=png /tmp/mohafzaty-icon.svg > site/app/icon-512.png
+          rsvg-convert --width=512 --height=512 --format=png /tmp/mohafzaty-maskable.svg > site/app/icon-maskable-512.png
+          test -s site/app/icon-192.png
+          test -s site/app/icon-512.png
+          test -s site/app/icon-maskable-512.png
 
       - name: Prepare root favicon for browsers and Google
         run: |
@@ -52,3 +68,4 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+

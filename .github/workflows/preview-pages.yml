@@ -25,8 +25,16 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
-      - name: Prepare approved app icon for preview
-        run: cat .github/assets/icon-parts/icon-*.b64 | tr -d '\r\n' | base64 --decode > site/app/icon-transparent-192.png
+      - name: Render matching preview icons
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-bin
+          rsvg-convert --width=192 --height=192 --format=png site/app/favicon.svg > site/app/icon-192.png
+          rsvg-convert --width=512 --height=512 --format=png site/app/favicon.svg > site/app/icon-512.png
+          rsvg-convert --width=512 --height=512 --format=png site/app/favicon.svg > site/app/icon-maskable-512.png
+          cp site/app/icon-192.png site/app/icon-transparent-192.png
+          base64 --decode .github/assets/root-favicon.ico.b64 > site/favicon.ico
+          test -s site/favicon.ico
 
       - name: Deploy preview to Cloudflare Pages
         run: npx wrangler@latest pages deploy site --project-name=mohafzaty-pro --branch=${{ github.ref_name }}

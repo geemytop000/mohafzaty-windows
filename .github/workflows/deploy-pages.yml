@@ -17,17 +17,23 @@ jobs:
       - name: Get repository files
         uses: actions/checkout@v4
 
-      - name: Prepare approved wallet icon
+      - name: Render all site icons from shared oval artwork
         run: |
-          cat .github/assets/icon-parts/icon-*.b64 | tr -d '\r\n' | base64 --decode > site/app/icon-transparent-192.png
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-bin
+          rsvg-convert --width=192 --height=192 --format=png site/app/favicon.svg > site/app/icon-192.png
+          rsvg-convert --width=512 --height=512 --format=png site/app/favicon.svg > site/app/icon-512.png
+          rsvg-convert --width=512 --height=512 --format=png site/app/favicon.svg > site/app/icon-maskable-512.png
+          cp site/app/icon-192.png site/app/icon-transparent-192.png
           python - <<'PY'
           import struct
-          path = 'site/app/icon-transparent-192.png'
-          data = open(path, 'rb').read()
-          assert data[:8] == b'\x89PNG\r\n\x1a\n', 'Invalid PNG signature'
-          width, height = struct.unpack('>II', data[16:24])
-          assert (width, height) == (192, 192), f'Unexpected icon dimensions: {width}x{height}'
-          print(f'Validated transparent app icon: {width}x{height}, {len(data)} bytes')
+          from pathlib import Path
+          for path, expected in [('site/app/icon-192.png', 192), ('site/app/icon-512.png', 512), ('site/app/icon-maskable-512.png', 512), ('site/app/icon-transparent-192.png', 192)]:
+              data = Path(path).read_bytes()
+              assert data[:8] == b'\x89PNG\r\n\x1a\n', f'Invalid PNG: {path}'
+              width, height = struct.unpack('>II', data[16:24])
+              assert (width, height) == (expected, expected), f'Unexpected dimensions for {path}: {width}x{height}'
+              print(f'Validated {path}: {width}x{height}, {len(data)} bytes')
           PY
 
       - name: Prepare root favicon for browsers and Google

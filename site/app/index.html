@@ -261,6 +261,10 @@ html,body{overflow-x:hidden}
 .mdl h3{margin:0 0 12px;font-size:18px}
 .mdl label{display:block;font-size:13px;color:#596153;margin:10px 0 4px}
 .mdl input{width:100%;box-sizing:border-box;padding:13px;border:1.5px solid #D7CBA5;border-radius:12px;font-size:16px;font-family:inherit;background:#fff}
+.mdl .wallet-provider-select{width:100%;min-height:60px;padding:14px 16px;border:2px solid #2F6F4E;border-radius:14px;font-family:inherit;font-size:18px;font-weight:900;color:#203b2d;background:#EAF3EC;cursor:pointer}
+.mdl .wallet-provider-select:focus{outline:none;box-shadow:0 0 0 4px rgba(47,111,78,.18)}
+.mdl .wallet-provider-error{display:none;margin-top:8px;padding:10px 12px;border:1.5px solid #B42318;border-radius:10px;background:#FCE8E6;color:#B42318;font-size:14px;font-weight:800;line-height:1.5}
+body.dark-mode .mdl .wallet-provider-select{background:#1A3320;color:#E0E0E0;border-color:#4CAF50}
 .mdl input:focus{outline:none;border-color:#2F6F4E;box-shadow:0 0 0 3px rgba(47,111,78,.15)}
 .mdl-b{display:flex;gap:10px;margin-top:16px}
 .mdl-b button,.mdl-row{flex:1;padding:13px;border:0;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
@@ -3982,18 +3986,19 @@ function askModal(title, fields, ok, validator) {
     ov.innerHTML = '<div class="mdl"><h3>' + esc(title) + '</h3>' + fields.map(function (f, i) {
       const isSelect = f.type === 'select';
       const input = isSelect
-        ? '<select id="mf' + i + '">' + (f.options || '') + '</select>'
+        ? '<select id="mf' + i + '"' + (f.k === 'providerType' ? ' class="wallet-provider-select" aria-describedby="walletProviderError"' : '') + '>' + (f.options || '') + '</select>'
         : '<input id="mf' + i + '" type="' + (f.type || 'text') + '" ' + (f.type === 'number' ? 'step="0.01" ' + (f.neg ? '' : 'inputmode="decimal" ') : '') + (f.inputmode ? 'inputmode="' + f.inputmode + '" ' : '') + (f.maxlength ? 'maxlength="' + f.maxlength + '" ' : '') + (f.pattern ? 'pattern="' + f.pattern + '" ' : '') + 'value="' + esc(String(f.value == null ? '' : f.value)) + '">';
       const hidden = f.hiddenUnless ? ' data-wallet-conditional="' + f.hiddenUnless + '" style="display:none"' : '';
       return '<div class="mdl-field"' + hidden + (f.inputmode === 'numeric' ? ' data-wallet-phone-field="1"' : '') + '><label for="mf' + i + '">' + esc(f.label) + '</label>' + input + '</div>';
-    }).join('') + '<div class="mdl-b"><button class="mdl-ok">' + (ok || 'حفظ') + '</button><button class="mdl-x">إلغاء</button></div></div>';
+    }).join('') + (fields.some(function(f) { return f.k === 'providerType'; }) ? '<div class="wallet-provider-error" id="walletProviderError" role="alert" aria-live="assertive">⚠️ اختار نوع الخط أو المحفظة قبل الحفظ.</div>' : '') + '<div class="mdl-b"><button class="mdl-ok">' + (ok || 'حفظ') + '</button><button class="mdl-x">إلغاء</button></div></div>';
     document.body.appendChild(ov);
     const first = ov.querySelector('input,select');
     setTimeout(function () { first.focus(); if (first.select) first.select(); }, 60);
     const done = function (v) { ov.remove(); resolve(v); };
     ov.querySelector('.mdl-x').onclick = function () { done(null); };
     ov.addEventListener('click', function (e) { if (e.target === ov) done(null); });
-    const providerSelect = ov.querySelector('#mf0');
+    const hasWalletType = fields.some(function(f) { return f.k === 'providerType'; });
+    const providerSelect = hasWalletType ? ov.querySelector('#mf0') : null;
     function updateWalletConditionalFields() {
       const selected = providerSelect ? providerSelect.value : '';
       ov.querySelectorAll('[data-wallet-conditional]').forEach(function(el) {
@@ -4006,12 +4011,20 @@ function askModal(title, fields, ok, validator) {
     if (providerSelect) {
       providerSelect.addEventListener('change', updateWalletConditionalFields);
       providerSelect.addEventListener('change', function() {
+        const warning = ov.querySelector('#walletProviderError');
+        if (warning) warning.style.display = 'none';
         const label = ov.querySelector('[data-wallet-phone-field] label');
         if (label) label.textContent = providerSelect.value === 'instapay' ? 'رقم الموبايل المرتبط بإنستاباي (11 رقم)' : 'رقم الموبايل (11 رقم)';
       });
       updateWalletConditionalFields();
     }
     const submit = function () {
+      if (hasWalletType && providerSelect && !providerSelect.value) {
+        const warning = ov.querySelector('#walletProviderError');
+        if (warning) warning.style.display = 'block';
+        providerSelect.focus();
+        return;
+      }
       const o = {};
       fields.forEach(function (f, i) { o[f.k] = ov.querySelector('#mf' + i).value.trim(); });
       if (validator && validator(o) === false) return;

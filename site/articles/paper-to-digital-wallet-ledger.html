@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+<!-- Google tag (gtag.js) -->
+<script>
+  // Collect production-site visits only; keep Cloudflare preview traffic out of reports.
+  if (["mohafzatypro.com", "www.mohafzatypro.com"].includes(window.location.hostname)) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){window.dataLayer.push(arguments);};
+    window.gtag('js', new Date());
+    window.gtag('config', 'G-HTXW8HD2WT');
+    document.addEventListener('click', function(event) {
+      var clickedElement = event.target;
+      if (clickedElement && clickedElement.nodeType !== 1) clickedElement = clickedElement.parentElement;
+      var clickedLink = clickedElement && clickedElement.closest ? clickedElement.closest('a[href]') : null;
+      if (!clickedLink) return;
+      var destinationUrl;
+      try { destinationUrl = new URL(clickedLink.href, window.location.href); } catch (error) { return; }
+      if (destinationUrl.origin !== window.location.origin) return;
+      var eventName = null;
+      if (destinationUrl.pathname === '/register.html' || destinationUrl.pathname === '/register/') eventName = 'click_start_free';
+      else if (destinationUrl.pathname === '/download.html' || destinationUrl.pathname === '/download' || destinationUrl.pathname === '/download/') eventName = 'click_download';
+      if (!eventName) return;
+      window.gtag('event', eventName, {
+        page_path: window.location.pathname,
+        link_text: (clickedLink.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 80),
+        destination_path: destinationUrl.pathname
+      });
+    });
+
+    var googleAnalyticsScript = document.createElement('script');
+    googleAnalyticsScript.async = true;
+    googleAnalyticsScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-HTXW8HD2WT';
+    document.head.appendChild(googleAnalyticsScript);
+  }
+</script>
+
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نقل حسابات محل المحافظ من الدفتر الورقي إلى سجل رقمي | محفظتي برو</title>
+<meta name="description" content="خطة انتقال من الدفتر الورقي إلى برنامج حسابات المحل: تحديد تاريخ البداية، مطابقة الأرصدة، فصل المديونيات القديمة ومنع تكرار التسجيل.">
+<meta name="theme-color" content="#ffffff">
+<link rel="canonical" href="https://mohafzatypro.com/articles/paper-to-digital-wallet-ledger">
+<meta property="og:type" content="article"><meta property="og:locale" content="ar_EG"><meta property="og:site_name" content="محفظتي برو"><meta property="og:title" content="نقل حسابات محل المحافظ من الدفتر الورقي إلى سجل رقمي"><meta property="og:description" content="خطة انتقال من الدفتر الورقي إلى برنامج حسابات المحل: تحديد تاريخ البداية، مطابقة الأرصدة، فصل المديونيات القديمة ومنع تكرار التسجيل."><meta property="og:url" content="https://mohafzatypro.com/articles/paper-to-digital-wallet-ledger"><meta property="og:image" content="https://mohafzatypro.com/assets/og.png">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="نقل حسابات محل المحافظ من الدفتر الورقي إلى سجل رقمي"><meta name="twitter:description" content="خطة انتقال من الدفتر الورقي إلى برنامج حسابات المحل: تحديد تاريخ البداية، مطابقة الأرصدة، فصل المديونيات القديمة ومنع تكرار التسجيل."><meta name="twitter:image" content="https://mohafzatypro.com/assets/og.png">
+<link rel="icon" href="/app/favicon.svg?v=20261105" type="image/svg+xml">
+<link rel="icon" href="/app/icon-192.png?v=20261105" type="image/png" sizes="192x192">
+<link rel="shortcut icon" href="/app/icon-192.png?v=20261105" type="image/png">
+<link rel="apple-touch-icon" href="/app/icon-192.png?v=20261105"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap"><link rel="stylesheet" href="/style.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"نقل حسابات محل المحافظ من الدفتر الورقي إلى سجل رقمي","description":"خطة انتقال من الدفتر الورقي إلى برنامج حسابات المحل: تحديد تاريخ البداية، مطابقة الأرصدة، فصل المديونيات القديمة ومنع تكرار التسجيل.","inLanguage":"ar-EG","mainEntityOfPage":"https://mohafzatypro.com/articles/paper-to-digital-wallet-ledger","publisher":{"@type":"Organization","name":"محفظتي برو","url":"https://mohafzatypro.com/"},"image":"https://mohafzatypro.com/assets/customer-accounts.webp"}</script>
+</head><body><header class="nav"><div class="wrap">
+<a class="brand" href="/"><img src="/app/icon-transparent-192.png" alt="" width="34" height="34">محفظتي برو</a>
+<button class="menu-toggle" id="menuToggle" type="button" aria-label="فتح قائمة التنقل" aria-controls="primaryLinks" aria-expanded="false"><span class="menu-icon" aria-hidden="true"></span></button>
+<nav class="links" id="primaryLinks" aria-label="التنقل الرئيسي"><a class="hide-m" href="/#features">المميزات</a><a class="hide-m" href="/features">كل المميزات</a><a class="hide-m" href="/articles/">الأدلة والمقالات</a><a class="hide-m" href="/download.html">تحميل</a><a class="hide-m" href="/login.html">دخول</a><a class="btn sm desktop-start" href="/register.html">ابدأ مجانًا</a></nav>
+<a class="btn sm mobile-start" href="/register.html">ابدأ مجانًا</a>
+</div></header>
+<main class="article-shell"><article class="doc article-main"><nav class="article-breadcrumbs" aria-label="مسار التنقل"><a href="/">الرئيسية</a><span aria-hidden="true">/</span><a href="/articles/">الأدلة والمقالات</a></nav><h1>نقل حسابات محل المحافظ من الدفتر الورقي إلى سجل رقمي</h1><p class="article-meta">دليل عملي من محفظتي برو · إعداد بمساعدة الذكاء الاصطناعي</p><figure><img src="/assets/customer-accounts.webp" alt="واجهة محفظتي برو لتنظيم حسابات المحل" style="max-width:100%;height:auto" loading="lazy"><figcaption>من واجهة محفظتي برو. راجع صفحة المميزات للتفاصيل الحالية.</figcaption></figure>
+<p class="article-lead">الانتقال إلى دفتر رقمي لا يحتاج إلى إعادة كتابة سنوات من العمليات في يوم واحد. الأهم أن تبدأ من رصيد يمكن مراجعته، وأن تظل قادرًا على الرجوع إلى الحسابات القديمة. هذه خطة انتقال تدريجية لتنظيم السجل، وليست استيرادًا آليًا للدفتر الورقي.</p>
+<h2 id="scope">حدد ما ستنقله وما ستحتفظ به كأرشيف</h2>
+<p>قسّم بياناتك إلى أرصدة افتتاحية، ومستحقات عملاء لم تغلق، وعمليات تاريخية انتهت. ابدأ بالأرصدة والمستحقات التي ستؤثر على العمل بعد تاريخ الانتقال. احتفظ بالدفاتر القديمة مؤرخة وفي مكان آمن بدل إدخال تاريخ غير موثق فقط ليبدو النظام كاملًا.</p>
+<p>إذا كانت صفحة قديمة غير واضحة، علّمها بأنها تحتاج مراجعة. لا تحوّل رقمًا مشكوكًا فيه إلى رصيد مؤكد داخل البرنامج. يمكنك جمع النقاط المختلف عليها في قائمة منفصلة ومراجعتها مع الشخص المعني قبل نقلها.</p>
+<h2 id="opening">اختر نقطة بداية وراجع الأرصدة</h2>
+<ol><li>اختر بداية يوم أو وردية وحدد الوقت في ملاحظاتك.</li><li>عدّ النقدية الفعلية في الدرج.</li><li>راجع رصيد كل خط من مقدم الخدمة في الوقت نفسه قدر الإمكان.</li><li>راجع حساب كل عميل له رصيد مفتوح، مع بيان سبب الرصيد.</li><li>احتفظ بنسخة من ورقة المطابقة التي بنيت عليها البداية.</li></ol>
+<p>الرصيد الافتتاحي نقطة انطلاق؛ لا تسجل المبلغ نفسه مرة ثانية كعملية جديدة إلا إذا حدثت حركة فعلية بعد البداية. وبالمثل، تسوية دين قديم تختلف عن تسجيل عمولة اليوم.</p>
+<h2 id="parallel">اختبر طريقة الإدخال على نطاق صغير</h2>
+<p>ابدأ بسجل اختبار منفصل حتى تفهم الحقول وأنواع العمليات، ثم انتقل إلى سجل العمل الصحيح. خلال أول يوم احتفظ بوسيلة تحقق مختصرة للعمليات ومراجعها، وقارنها مع الدفتر الرقمي. لا تستخدم دفترين حقيقيين متعارضين من غير تحديد أيهما المرجع، ولا تجمع إجمالياتهما؛ هذا يضاعف العمليات.</p>
+<p><strong>مثال تنظيمي:</strong> إذا بدأت التسجيل الساعة التاسعة، فكل حركة قبلها تبقى ضمن الأرشيف ورصيد البداية، وكل حركة بعدها تسجل مرة واحدة. لو اكتشفت عملية قديمة لم تدخل في المطابقة، وثّقها كتصحيح متعلق بالبداية، ولا تعرضها كأنها عملية عميل حدثت الآن.</p>
+<h2 id="backup">احفظ نسخة يمكن الرجوع إليها</h2>
+<p>احتفظ بالدفتر القديم وورقة المطابقة، واستخدم إمكانات التصدير والنسخ الاحتياطي المتاحة. تصدير Excel مفيد لقراءة السجل، لكنه ليس بالضرورة بديلًا عن ملف النسخ الاحتياطي المخصص للاستعادة. راجع نوع الملف والغرض منه قبل الاعتماد عليه، ولا تختبر الاستعادة فوق سجل العمل الوحيد.</p>
+<p>تجنب إرسال ملفات تحتوي على بيانات العملاء في مجموعات عامة. استخدم أقل قدر من المعلومات الشخصية الذي تحتاجه للتمييز بين الحسابات، واقرأ <a href="/privacy.html">سياسة الخصوصية</a> عند استخدام أي أداة.</p>
+<h2 id="ready">متى تعتمد السجل الجديد؟</h2>
+<p>اعتمد عليه عندما تستطيع مطابقة رصيد البداية، وتتبع عينة من العمليات، وتفسير فروق أول إقفال، وحفظ نسخة من البيانات. محفظتي برو مجاني وبدون اشتراك ويقدم أدوات تسجيل ومراجعة وتصدير؛ راجع <a href="/features">المميزات الحالية</a>، ثم <a href="/register.html">ابدأ التسجيل</a>.</p>
+<p>للمتابعة اليومية استخدم <a href="/articles/daily-wallet-shop-accounting">دليل إدارة الحسابات</a>، ولتسليم العمل بين موظفين راجع <a href="/articles/wallet-shop-shift-handover">قائمة تسليم الوردية</a>. البرنامج ينظم ما تدخله، ولا ينفذ التحويلات أو يستخرج أرصدة الشركات تلقائيًا.</p><section class="article-inline-promo"><h2>نظّم حسابات محلك بدون اشتراك</h2><p>محفظتي برو دفتر مجاني لتسجيل العمليات والعملاء ومراجعة الحسابات.</p><a class="btn" href="/register.html">ابدأ مجانًا</a></section></article><aside class="article-sidebar" aria-label="التعريف بمحفظتي برو"><div class="article-promo-card">
+<p class="eyebrow">لأصحاب المحلات</p><h2>دفتر حسابات لمحل المحافظ وخدمات الدفع</h2>
+<p>سجّل حركة السحب والإيداع، وتابع الأرصدة والعمولات والعملاء من مكان واحد.</p>
+<ul><li>العمليات والعمولات</li><li>أرصدة الخطوط والدرج</li><li>الحسابات الدائنة والمدينة</li><li>التقارير والإقفال اليومي</li><li>التصدير والمزامنة والنسخ الاحتياطي</li></ul>
+<a class="btn" href="/register.html">ابدأ مجانًا</a><a class="promo-secondary" href="/app/">افتح البرنامج</a>
+<p class="promo-footnote">محفظتي برو دفتر لتسجيل العمليات التي تدخلها، ولا ينفذ التحويلات أو يقرأ أنظمة الشركات مباشرة.</p>
+</div></aside>
+</main><div class="article-mobile-cta" id="articleMobileCta"><div class="mobile-copy"><strong>محفظتي برو لأصحاب محلات الدفع الإلكتروني</strong><span>نظّم الحسابات والعمولات والأرصدة</span></div><a class="mobile-cta-link" href="/register.html">ابدأ مجانًا</a><button class="mobile-cta-close" id="closeArticleCta" type="button" aria-label="إخفاء الشريط">×</button></div><footer><div class="wrap"><div>© محفظتي برو — جميع الحقوق محفوظة</div><div><a href="/">الرئيسية</a> · <a href="/articles/">الأدلة والمقالات</a> · <a href="/download.html">تحميل</a> · <a href="/privacy.html">الخصوصية</a></div><div class="footer-contact" aria-label="التواصل والدعم"><strong>تواصل معنا:</strong><a href="https://www.facebook.com/share/14vAuBAnGHx/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">📘</span>Facebook</a><a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=mohafzatypro%40gmail.com" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">✉️</span>mohafzatypro@gmail.com</a><a href="https://wa.me/201555560865" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">💬</span>WhatsApp · 01555560865</a></div></div></footer><script>(function(){var t=document.getElementById('menuToggle'),m=document.getElementById('primaryLinks');if(t&&m){function setOpen(o,restore){t.setAttribute('aria-expanded',String(o));t.setAttribute('aria-label',o?'إغلاق قائمة التنقل':'فتح قائمة التنقل');m.classList.toggle('is-open',o);if(restore)t.focus();}t.addEventListener('click',function(){setOpen(t.getAttribute('aria-expanded')!=='true');});m.addEventListener('click',function(e){if(e.target.closest('a'))setOpen(false);});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&t.getAttribute('aria-expanded')==='true')setOpen(false,true);});window.matchMedia('(min-width: 901px)').addEventListener('change',function(e){if(e.matches)setOpen(false);});}var c=document.getElementById('closeArticleCta'),b=document.getElementById('articleMobileCta');if(c&&b)c.addEventListener('click',function(){b.remove();});})();</script><script>(function(){var input=document.getElementById('articleSearch'),status=document.getElementById('articleSearchStatus');if(!input||!status)return;var grids=Array.prototype.slice.call(document.querySelectorAll('.article-main > .grid')),cards=[];grids.forEach(function(grid){Array.prototype.forEach.call(grid.querySelectorAll('.card'),function(card){cards.push(card);});});if(!cards.length)return;input.disabled=false;function normalize(value){return value.replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').toLocaleLowerCase('ar').trim();}function filter(){var query=normalize(input.value),visible=0;cards.forEach(function(card){var match=!query||normalize(card.textContent||'').includes(query);card.hidden=!match;if(match)visible++;});grids.forEach(function(grid){var visibleInGrid=grid.querySelectorAll('.card:not([hidden])').length,heading=grid.previousElementSibling;if(heading&&heading.tagName==='H2')heading.hidden=visibleInGrid===0;});if(!query){status.textContent='عرض '+visible+' دليلًا ومقالًا.';}else if(!visible){status.textContent='لا توجد نتائج. جرّب كلمة بحث أخرى.';}else{status.textContent='تم العثور على '+visible+' من الأدلة والمقالات.';}}input.addEventListener('input',filter);filter();})();</script>
+</body></html>

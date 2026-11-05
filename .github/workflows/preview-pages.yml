@@ -3,6 +3,7 @@ name: Preview Mohafzaty Pro on Cloudflare Pages
 on:
   push:
     branches:
+      - codex/independent-content
       - wallet-guides-and-article-cta
       - add-ga4-website-analytics
       - track-registration-downloads-clicks

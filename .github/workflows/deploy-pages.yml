@@ -21,9 +21,11 @@ jobs:
         run: |
           base64 --decode .github/assets/mohafzatypro-intro-wide.mp4.b64 > site/assets/mohafzatypro-intro-wide.mp4
           base64 --decode .github/assets/mohafzatypro-intro-wide-poster.jpg.b64 > site/assets/mohafzatypro-intro-wide-poster.jpg
+          base64 --decode .github/assets/mohafzatypro-facebook-ad.mp4.b64 > site/assets/mohafzatypro-facebook-ad.mp4
           test -s site/assets/mohafzatypro-intro-wide.mp4
           test -s site/assets/mohafzatypro-intro-wide-poster.jpg
-          file site/assets/mohafzatypro-intro-wide.mp4 site/assets/mohafzatypro-intro-wide-poster.jpg
+          test -s site/assets/mohafzatypro-facebook-ad.mp4
+          file site/assets/mohafzatypro-intro-wide.mp4 site/assets/mohafzatypro-intro-wide-poster.jpg site/assets/mohafzatypro-facebook-ad.mp4
 
       - name: Prepare approved wallet icon
         run: |

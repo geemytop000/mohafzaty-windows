@@ -8,8 +8,6 @@ on:
     paths:
       - 'android/**'
       - 'site/.well-known/assetlinks.json'
-      - 'site/app/favicon.svg'
-      - '.github/assets/icon-parts/**'
       - '.github/workflows/android-apk.yml'
   workflow_dispatch:
 
@@ -23,17 +21,17 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Install the shared round launcher icon
+      - name: Install the square Android launcher icon
         run: |
           mkdir -p android/app/src/main/res/mipmap-nodpi
-          cat .github/assets/icon-parts/icon-*.b64 | tr -d '\r\n' | base64 --decode > android/app/src/main/res/mipmap-nodpi/ic_launcher.png
+          base64 --decode android/assets/mohafzatypro-icon-192.png.base64 > android/app/src/main/res/mipmap-nodpi/ic_launcher.png
           python - <<'PY'
           import struct
           path = 'android/app/src/main/res/mipmap-nodpi/ic_launcher.png'
           data = open(path, 'rb').read()
           assert data[:8] == b'\x89PNG\r\n\x1a\n', 'Invalid launcher icon PNG'
           assert struct.unpack('>II', data[16:24]) == (192, 192), 'Launcher icon must be 192x192'
-          print(f'Validated shared launcher icon: {len(data)} bytes')
+          print(f'Validated square Android icon: {len(data)} bytes')
           PY
           file android/app/src/main/res/mipmap-nodpi/ic_launcher.png
       - name: Check signing secrets

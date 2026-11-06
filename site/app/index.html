@@ -4284,8 +4284,10 @@ function getSyncCfg() { if (cloudUser) return { cloud: true, uid: cloudUser.uid 
 const syncSt = { busy: false, again: false, ok: 0, err: '' };
 function friendlySyncError(e) {
   const raw = String(e && (e.message || e.code) || e || '');
-  if (isFirestoreNetworkError(e)) return 'تعذر الاتصال بقاعدة بيانات Firebase. تأكد من الإنترنت وأن Firestore مفعّل في مشروع Firebase، ثم جرّب المزامنة مرة أخرى.';
-  if (raw.toLowerCase().indexOf('permission') >= 0) return 'Firebase رفض الوصول للبيانات. راجع قواعد Firestore وتأكد أنها تسمح للمستخدم ببياناته فقط.';
+  if (isFirestoreNetworkError(e)) return navigator.onLine === false
+    ? 'الإنترنت غير متاح الآن. بياناتك محفوظة على هذا الجهاز، وستُستأنف المزامنة عند عودة الاتصال.'
+    : 'تعذر الاتصال بخدمة المزامنة الآن. بياناتك محفوظة على هذا الجهاز؛ حاول مرة أخرى بعد قليل.';
+  if (raw.toLowerCase().indexOf('permission') >= 0) return 'تعذر الوصول إلى بيانات المزامنة لهذا الحساب. سجّل الخروج ثم الدخول مرة أخرى، وإذا استمرت المشكلة تواصل مع الدعم.';
   return raw;
 }
 async function syncFetch(cfg) {
